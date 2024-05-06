@@ -2,72 +2,87 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace GXPEngine
 {
     class Menu : GameObject
     {
-        string type;
+        private int gameOverWave;
+        private int gameOverScore;
+        private string menuType;
 
-        Sound gameOverHell = new Sound("GameOverHellSound.mp3");
-        SoundChannel menuChannel;
         public Menu(string pType) : base()
         {
-            type = pType;
-            Start();
+            menuType = pType;
+            if (menuType == "Game Over")
+            {
+                StartGameOver();
+            }
+            else if (menuType == "Main Menu")
+            {
+                StartMainMenu();
+            }            
         }
-        void Start()
+
+        private void StartGameOver()
         {
-            if (type == "Main Menu")
+            gameOverWave = game.FindObjectOfType<WaveManager>().currentWave;
+            gameOverScore = game.FindObjectOfType<Player>().score;
+            EasyDraw gameOverText = new EasyDraw(250, 75, false);
+            EasyDraw wave = new EasyDraw(300, 50, false);
+            EasyDraw score = new EasyDraw(300, 50, false);
+            Button restartButton;
+            Button quitButton;
+            gameOverText.TextSize(25);
+            gameOverText.TextAlign(CenterMode.Center, CenterMode.Center);
+            gameOverText.SetXY(game.width / 2 - gameOverText.width / 2, 50);
+            gameOverText.Text("Game over!");
+            wave.TextAlign(CenterMode.Center, CenterMode.Center);
+            wave.SetXY(game.width / 2 - wave.width / 2, 150);
+            string congratulations = "";
+            if (gameOverWave >= 10)
             {
-                Sprite background = new Sprite("MainMenuBackground.png", false, false);
-                Sprite title = new Sprite("title.png", false, false);
-                Button startButton = new Button("Press the nose to start", "Start Game", game.width / 2 - 400 / 2, 350);
-                title.SetXY(game.width / 2 - title.width / 2, 50);
-                AddChild(background);
-                AddChild(title);
-                AddChild(startButton);
+                congratulations = ", good job!";
             }
-            else if (type == "Game Over")
-            {
-                MyGame mainGame = (MyGame)game;
-                string restartButtonText = "Press the nose to restart";
-                if (mainGame.completedLevelIndices.Count < 2)
-                {
-                    Sprite background = new Sprite("GameoverCandy.png", false, false);
-                    AddChild(background);
-                }
-                else
-                {
-                    menuChannel = gameOverHell.Play();
-                    Sprite background = new Sprite("GameoverHell.png", false, false);
-                    AddChild(background);
-                    restartButtonText = "";
-                }
-                EasyDraw score = new EasyDraw(300, 50, false);
-                Button restartButton = new Button(restartButtonText, "Restart Game", game.width / 2 - 400 / 2, 600);
-                score.TextFont("Concert One", 15);
-                score.TextAlign(CenterMode.Center, CenterMode.Center);
-                score.SetXY(game.width / 2 - score.width / 2, 175);
-                score.Text("Score: " + mainGame.playerData.playerScore);
-                AddChild(score);
-                AddChild(restartButton);
-            }
-            else if (type == "Win Screen")
-            {
-                Sprite background = new Sprite("WinScreen.png", false, false);                
-                EasyDraw score = new EasyDraw(300, 50, false);
-                Button restartButton = new Button("", "Restart Game", game.width / 2 - 400 / 2, 425);
-                score.TextFont("Concert One", 15);
-                score.TextAlign(CenterMode.Center, CenterMode.Center);
-                score.SetXY(game.width / 2 - score.width / 2, 175);
-                score.Text("Score: " + ((MyGame)game).playerData.playerScore);
-                AddChild(background);
-                AddChild(score);
-                AddChild(restartButton);
-            }
+            wave.Text("Lasted until Wave " + gameOverWave + congratulations);
+            score.TextAlign(CenterMode.Center, CenterMode.Center);
+            score.SetXY(game.width / 2 - score.width / 2, 175);
+            score.Text("Score: " + gameOverScore);
+            restartButton = new Button("Restart", game.width / 2 - 150 / 2, 425);
+            quitButton = new Button("Quit Game", game.width / 2 - 150 / 2, 500);
+            AddChild(gameOverText);
+            AddChild(wave);
+            AddChild(score);
+            AddChild(restartButton);
+            AddChild(quitButton);
         }
+
+        private void StartMainMenu()
+        {
+            EasyDraw title = new EasyDraw(400, 75, false);
+            EasyDraw controls = new EasyDraw(360, 480, false);
+            Button startButton = new Button("Start Game", game.width / 2 - 150 / 2, 250);
+            Button quitButton = new Button("Quit Game", game.width / 2 - 150 / 2, 350);
+            title.TextAlign(CenterMode.Center, CenterMode.Center);
+            title.SetXY(game.width / 2 - title.width / 2, 50);
+            title.TextSize(30);
+            title.Text("Interstellar Carnage");
+            controls.SetXY(5, 50);
+            controls.Text("Controls: \n" +
+            "W - forwards \n" +
+            "S - backwards \n" +
+            "A - turn left \n" +
+            "D - turn right \n" +
+            "LShift - ram ability \n" +
+            "Enter - explode ability \n" +
+            "LMB - shoot \n" +
+            "F - toggle auto-aim \n");
+            AddChild(title);
+            AddChild(controls);
+            AddChild(startButton);
+            AddChild(quitButton);
+        }
+
         public void DestroyAll()
         {
             for (int i = 0; i < GetChildCount(); i++)

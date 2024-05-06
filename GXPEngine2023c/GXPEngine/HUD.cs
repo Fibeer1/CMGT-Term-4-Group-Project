@@ -1,119 +1,104 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Drawing;
 
 namespace GXPEngine
 {
     class HUD : EasyDraw
     {
+        //General variables
         Player player;
-        public Level level;
-        string scoreText;
-        Sprite score = new Sprite("UI_score.png");
-        Sprite stamina = new Sprite("UI_stamina_back.png");
-        Sprite staminaBar = new Sprite("UI_stamina_rainbowline.png");        
-        Sprite staminaOverlay = new Sprite("UI_stamina_overlay.png");
-        AnimationSprite staminaBarEffect = new AnimationSprite("cloud_frames.png", 4, 1);
-        AnimationSprite biteCD = new AnimationSprite("UI_bitecd.png", 4, 2);
-        AnimationSprite hornCD = new AnimationSprite("UI_horncd.png", 4, 2);
-        public AnimationSprite[] hearts = new AnimationSprite[3];
-        Font uiFont = new Font("Concert One", 15);
-        HUDData data;
-        PlayerData playerData;
+        WaveManager waveManager;
+        Font textFont = new Font(FontFamily.GenericSansSerif, 15);
 
-        public HUD() : base(1366, 768, false) //size is the same as the game window
+        //Cooldown variables
+        float explosionTime = 0;
+        float explosionCD = 0;
+        float ramTime = 0;
+        float ramCD = 0;
+
+        public HUD() : base(1280, 720, false)
         {
-            data = ((MyGame)game).hudData;
-            playerData = ((MyGame)game).playerData;
+            player = game.FindObjectOfType<Player>();
+            waveManager = game.FindObjectOfType<WaveManager>();
         }
 
-        public void Start()
-        {
-            player = level.player;
-            stamina.SetXY(5, 5);
-            for (int i = 0; i < hearts.Length; i++)
-            {
-                hearts[i] = new AnimationSprite("Heart.png", 2, 1);
-                hearts[i].SetFrame(1);
-                if (i == 1)
-                {
-                    if (playerData.currentLives <= 1)
-                    {
-                        hearts[i].SetFrame(0);
-                    }
-                }
-                if (i == 2)
-                {
-                    if (playerData.currentLives <= 2)
-                    {
-                        hearts[i].SetFrame(0);
-                    }
-                }
-                hearts[i].SetXY(20 + (i * 50), 100);
-                AddChild(hearts[i]);
-            }          
-            AddChild(stamina);           
-            staminaBar.SetOrigin(0, staminaBar.y / 2);
-            staminaBar.SetXY(12, 50);
-            AddChild(staminaBar);
-            AddChild(staminaBarEffect);
-            staminaOverlay.SetXY(7, 45);
-            AddChild(staminaOverlay);
-            score.SetXY(game.width / 2 - score.width / 2, 10);
-            AddChild(score);
-            biteCD.SetXY(185, 95);
-            biteCD.SetFrame(biteCD.frameCount - 1);
-            AddChild(biteCD);
-            hornCD.SetXY(250, 95);
-            hornCD.SetFrame(hornCD.frameCount - 1);
-            AddChild(hornCD);
-        }
         private void Update()
         {
             graphics.Clear(Color.Empty);
-            HandleStamina();
+            //Health
+            graphics.DrawString("Health: " + player.healthPoints, textFont, Brushes.White, 10, 10);
             //Score
-            scoreText = playerData.playerScore.ToString();
-            graphics.DrawString(scoreText,
-                uiFont,
-                Brushes.White, 
-                score.x + score.width / 2 - 9,
-                score.y + score.height + 5);
-            HandleBiteCD();
-            HandleHornCD();
-        }
-        private void HandleStamina()
-        {
-            if (playerData.stamina > 0)
+            graphics.DrawString("Score: " + player.score, textFont, Brushes.White, 10, 35);
+            //Explode CD
+            HandleExplosionCD();
+            //Ram CD
+            HandleRamCD();
+            //Wave Counter
+            graphics.DrawString("Wave " + waveManager.currentWave, textFont, Brushes.White, 600, 10);
+            //Wave Timer
+            graphics.DrawString("Time: " + (int)waveManager.timer, textFont, Brushes.White, 600, 40);
+            //Codex
+            if (waveManager.currentState == "Break" && waveManager.currentWave < 10)
             {
-                staminaBar.scaleX = playerData.currentStamina / 1000;
-                staminaBarEffect.SetXY(staminaBar.x + staminaBar.width - staminaBarEffect.width / 2, staminaBar.y);
-                staminaBarEffect.Animate(0.15f);
+                graphics.DrawString("Enemy types:", textFont, Brushes.White, 10, 275);
+                graphics.DrawString("White - Normal", textFont, Brushes.White, 10, 300);
+                graphics.DrawString("Yellow - Small and quick", textFont, Brushes.Yellow, 10, 325);
+                graphics.DrawString("Purple - Changes direction randomly", textFont, Brushes.Purple, 10, 350);
+                graphics.DrawString("Turquoise - Homes in towards me", textFont, Brushes.Turquoise, 10, 375);
+                graphics.DrawString("Green - Slowly rotates towards me", textFont, Brushes.LimeGreen, 10, 400);
+                graphics.DrawString("Orange - Homes in towards me and deals damage when rammed", textFont, Brushes.Orange, 10, 425);
+                graphics.DrawString("Blue - Slowly homes in towards me and is pushed back from explosions", textFont, Brushes.Blue, 10, 450);
             }
         }
-        private void HandleBiteCD()
+
+        private void HandleExplosionCD()
         {
-            if (player.biteCDTimer > 0)
-            {
-                biteCD.Animate(playerData.biteCD / 2);
+            if (player.explosionCooldown > 0)
+            {               
+                if (explosionCD <= 0)
+                {
+                    explosionCD = player.explosionCooldown;                    
+                }
+                float angle = 0;
+                if (angle < 360)
+                {
+                    angle = explosionTime / explosionCD * 360;
+                    explosionTime += 0.0175f;
+                }
+                graphics.DrawString("Explode CD: ", textFont, Brushes.White, 10, 60);
+                graphics.FillPie(new SolidBrush(Color.White), 130, 65, 15, 15, 0, angle);
             }
             else
             {
-                biteCD.SetFrame(biteCD.frameCount - 1);
+                explosionTime = 0;
+                explosionCD = 0;
             }
         }
-        private void HandleHornCD()
+
+        private void HandleRamCD()
         {
-            if (player.hornCDTimer > 0)
+            if (player.ramCooldown > 0)
             {
-                hornCD.Animate(playerData.hornCD / 75);
+                if (ramCD <= 0)
+                {
+                    ramCD = player.ramCooldown;
+                }
+                float angle = 0;
+                if (angle < 360)
+                {
+                    angle = ramTime / ramCD * 360;
+                    ramTime += 0.0175f;
+                }               
+                graphics.DrawString("Ram CD: ", textFont, Brushes.White, 10, 85);
+                graphics.FillPie(new SolidBrush(Color.White), 100, 90, 15, 15, 0, angle);
             }
             else
             {
-                hornCD.SetFrame(hornCD.frameCount - 1);
+                ramTime = 0;
+                ramCD = 0;
             }
         }
     }
