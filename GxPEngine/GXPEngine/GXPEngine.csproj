@@ -37,21 +37,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="HUD.cs" />
+    <Compile Include="Bullet.cs" />
+    <Compile Include="Button.cs" />
+    <Compile Include="Enemy.cs" />
+    <Compile Include="Gun.cs" />
     <Compile Include="Menu.cs" />
-    <Compile Include="MyGame.cs" />
-    <Compile Include="PhysicsClasses\AABB.cs" />
-    <Compile Include="PhysicsClasses\Arrow.cs" />
-    <Compile Include="PhysicsClasses\Collider.cs" />
-    <Compile Include="PhysicsClasses\ColliderManager.cs" />
-    <Compile Include="PhysicsClasses\CollisionInfo.cs" />
+    <Compile Include="ObjectDeathEffect.cs" />
+    <Compile Include="EntityManager.cs" />
+    <Compile Include="Explosion.cs" />
     <Compile Include="GXPEngine\AddOns\Gizmos.cs" />
     <Compile Include="GXPEngine\AddOns\SpriteBatch.cs" />
     <Compile Include="GXPEngine\AddOns\TiledLoader.cs" />
-    <Compile Include="PhysicsClasses\HorizontalLineSegment.cs" />
-    <Compile Include="PhysicsClasses\LineSegment.cs" />
-    <Compile Include="PhysicsClasses\MovingRotatingBlock.cs" />
-    <Compile Include="PhysicsClasses\MyGame.cs" />
+    <Compile Include="HealthPickup.cs" />
+    <Compile Include="HUD.cs" />
+    <Compile Include="MyGame.cs" />
     <Compile Include="GXPEngine\Core\Canvas.cs" />
     <Compile Include="GXPEngine\Game.cs" />
     <Compile Include="GXPEngine\GameObject.cs" />
@@ -89,8 +88,19 @@
     <Compile Include="GXPEngine\FMOD\FMODSoundSystem.cs" />
     <Compile Include="GXPEngine\SoLoud\Soloud.cs" />
     <Compile Include="GXPEngine\SoLoud\SoloudSoundSystem.cs" />
+    <Compile Include="PhysicsClasses\AABB.cs" />
+    <Compile Include="PhysicsClasses\Arrow.cs" />
+    <Compile Include="PhysicsClasses\Collider.cs" />
+    <Compile Include="PhysicsClasses\ColliderManager.cs" />
+    <Compile Include="PhysicsClasses\CollisionInfo.cs" />
+    <Compile Include="PhysicsClasses\HorizontalLineSegment.cs" />
+    <Compile Include="PhysicsClasses\LineSegment.cs" />
+    <Compile Include="PhysicsClasses\MovingRotatingBlock.cs" />
     <Compile Include="PhysicsClasses\NLineSegment.cs" />
     <Compile Include="PhysicsClasses\Vec2.cs" />
     <Compile Include="Player.cs" />
+    <Compile Include="Powerup.cs" />
+    <Compile Include="RamParticle.cs" />
+    <Compile Include="WaveManager.cs" />
   </ItemGroup>
 </Project>
