@@ -7,48 +7,42 @@ using TiledMapParser;
 
 namespace GXPEngine
 {
-    class Level : GameObject
+    class Level : Sprite
     {
         public Player player;
         Camera camera;
         public HUD hud;
-        Sound cheerfulMusic = new Sound("cheerfulMusic.mp3", true);
-        Sound hellishMusic = new Sound("hellishMusic.mp3", true);
-
-        public SoundChannel musicChannel;
 
         int lvlNumber;
 
-        public Level(int index) : base()
+        public Level(int index) : base("MapEmpty.png")
         {
-            string levelBackground = "";
-            //if (((MyGame)game).completedLevelIndices.Count == 0)
-            //{
-            //    musicChannel = cheerfulMusic.Play();
-            //    levelBackground = "OverworldBackground.png";
-            //}
-            Sprite background1 = new Sprite(levelBackground, false, false);
-            AddChild(background1);            
-            Sprite background2 = new Sprite(levelBackground, false, false);
-            background2.SetXY(background1.width, background1.y);
-            AddChild(background2);
-
+            SetOrigin(width / 2, height / 2);
             Map levelData = MapParser.ReadMap("Level " + index + ".tmx");
             SpawnTiles(levelData);
             SpawnObjects(levelData);
+            List<GameObject> children = GetChildren();
+            foreach (GameObject child in children)
+            {
+                child.x -= width / 2;
+                child.y -= height / 2;
+            }
+            player.SetPosition(new Vec2(player.position.x - width / 2, player.position.y - height / 2));
             camera = new Camera(0, 0, game.width, game.height);
-            AddChild(camera);
-            //player.camera = camera;
             camera.SetScaleXY(1.5f, 1.5f);
-
+            game.AddChild(camera);
+            player.camera = camera;
             lvlNumber = index;
+            LevelRotator rotator = new LevelRotator();
+            rotator.level = this;
+            rotator.player = player;
+            camera.AddChild(rotator);
+            
 
             //HUD gets added last
             hud = new HUD();
-            //hud.level = this;
             camera.AddChild(hud);
-            hud.SetXY(camera.x - game.width / 2, camera.y - game.height / 2);
-            //hud.Start();
+            hud.SetXY(camera.x - game.width / 2, camera.y - game.height / 2);           
         }
         private void SpawnTiles(Map leveldata)
         {
@@ -66,11 +60,7 @@ namespace GXPEngine
                     if (tileNumber > 0)
                     {
                         string tilesetFile = "OverworldTileSet.png";
-                        SolidBlock tile = new SolidBlock(new Vec2(0, 0),tilesetFile, 9, 4);
-                        if (tileNumber >= 7 && tileNumber <= 9 || tileNumber >= 16 && tileNumber <= 18 || tileNumber >= 25 && tileNumber <= 27)
-                        {
-                            tile.collider.isTrigger = true;
-                        }
+                        SolidBlock tile = new SolidBlock(new Vec2(0,0), tilesetFile, 9, 4);
                         tile.SetFrame(tileNumber - 1);
                         tile.x = col * tile.width;
                         tile.y = row * tile.height;
@@ -94,29 +84,17 @@ namespace GXPEngine
             foreach (TiledObject obj in objectGroup.Objects)
             {
                 switch (obj.Name)
-                {                    
+                {
                     case "Player":
                         player = new Player();
-                        player.SetXY(obj.X, obj.Y);
-                        AddChild(player);
-                        //player.SetSpawnPoint();
-                        break;
-                    case "Enemy":
-                        //Enemy enemy = new Enemy();
-                        //enemy.SetXY(obj.X, obj.Y);
-                        //AddChild(enemy);
-                        //enemy.Start();
+                        player.SetPosition(new Vec2(obj.X, obj.Y));
+                        game.AddChild(player);
+                        player.SetSpawnPoint();
                         break;
                     case "Finish":
-                        //Finish finish = new Finish();
-                        //finish.SetXY(obj.X, obj.Y);
-                        //AddChild(finish);
-                        break;
-                    case "Trigger":
-                        //EnemyTrigger trigger = new EnemyTrigger();
-                        //trigger.SetXY(obj.X, obj.Y);
-                        //trigger.SetScaleXY(obj.Width, obj.Height);
-                        //AddChild(trigger);
+                        Finish finish = new Finish();
+                        finish.SetXY(obj.X, obj.Y);
+                        AddChild(finish);
                         break;
                     default:
                         break;
@@ -147,18 +125,18 @@ namespace GXPEngine
                 return;
             }
 
-            //foreach (TiledObject obj in objectGroup.Objects)
-            //{
-            //    switch (obj.Name)
-            //    {
-            //        case "EnemyTrigger":
-            //            Enemy enemy = new Enemy();
-            //            enemy.SetXY(obj.X, obj.Y);
-            //            AddChild(enemy);
-            //            enemy.Start();
-            //            break;
-            //    }
-            //}
+            foreach (TiledObject obj in objectGroup.Objects)
+            {
+                //switch (obj.Name)
+                //{
+                //    case "EnemyTrigger":
+                //        Enemy enemy = new Enemy();
+                //        enemy.SetXY(obj.X, obj.Y);
+                //        AddChild(enemy);
+                //        enemy.Start();
+                //        break;
+                //}
+            }
         }
     }
 }

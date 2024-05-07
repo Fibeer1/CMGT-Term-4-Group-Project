@@ -7,12 +7,10 @@ using System.Linq;
 public class MyGame : Game 
 {
 	Player player;
-	EntityManager entityManager;
 	HUD hud;
-	WaveManager waveManager;
 	SoundChannel audioSource;
+	Level level;
 	LineSegment[] mapBorders = new LineSegment[8];
-	Sound ambience = new Sound("Ambience.wav", true, true);
 
 	public MyGame() : base(1280, 720, false, false)     // Create a window that's 1280x720 and NOT fullscreen
 	{
@@ -21,33 +19,26 @@ public class MyGame : Game
 		AddChild(menu);
 		HandleUnitTests();
 	}
+	public void StartMenu(string menuType)
+	{
+		DestroyChildren();
+		Menu menu = new Menu(menuType);
+		AddChild(menu);
+	}
+	public void StartLevel(int levelIndex)
+	{
+		DestroyChildren();
+		Level level = new Level(levelIndex);
+		AddChild(level);
+	}
 
-	public void StartGame()
-    {
-		audioSource = ambience.Play();
-		AddMapBorders();
-		player = new Player();
-		player.ResetPosition();
-		AddChild(player);
-		entityManager = new EntityManager();
-		AddChild(entityManager);
-		waveManager = new WaveManager();
-		AddChild(waveManager);
-		hud = new HUD();
-		AddChild(hud);
-		//Sound list:
-		//Ambient space sound - done
-		//Explosion - done
-		//Death Explosion - done
-		//Boost - done
-		//Superspeed impact - done
-		//Shoot Bullets - done
-		//Bullet Impact - done
-		//Health Pickup - done
-		//Powerup Pickup - done
-		//Take Damage - done
-		//Wave Start/End - done
-		//All of these sounds must be 8-bit and in .wav
+	private void DestroyChildren()
+	{
+		List<GameObject> children = GetChildren();
+		foreach (GameObject child in children)
+		{
+			child.LateDestroy();
+		}
 	}
 
 	public void EndGame()
@@ -63,25 +54,25 @@ public class MyGame : Game
 		AddChild(menu);
 	}
 
-	private void AddMapBorders()
-    {
-		mapBorders[0] = new NLineSegment(new Vec2(25, 25), new Vec2(game.width / 2, 3), 0xff00ff00, 3);
-		mapBorders[1] = new NLineSegment(new Vec2(game.width / 2, 3), new Vec2(game.width - 25, 25), 0xff00ff00, 3);
-		mapBorders[2] = new NLineSegment(new Vec2(game.width - 25, 25), new Vec2(game.width - 3, game.height / 2), 0xff00ff00, 3);
-		mapBorders[3] = new NLineSegment(new Vec2(game.width - 3, game.height / 2), new Vec2(game.width - 25, game.height - 25), 0xff00ff00, 3);
-		mapBorders[4] = new NLineSegment(new Vec2(game.width - 25, game.height - 25), new Vec2(game.width / 2, game.height - 3), 0xff00ff00, 3);
-		mapBorders[5] = new NLineSegment(new Vec2(game.width / 2, game.height - 3), new Vec2(25, game.height - 25), 0xff00ff00, 3);
-		mapBorders[6] = new NLineSegment(new Vec2(25, game.height - 25), new Vec2(3, game.height / 2), 0xff00ff00, 3);
-		mapBorders[7] = new NLineSegment(new Vec2(3, game.height / 2), new Vec2(25, 25), 0xff00ff00, 3);
-		AddChild(mapBorders[0]);
-		AddChild(mapBorders[1]);
-		AddChild(mapBorders[2]);
-		AddChild(mapBorders[3]);
-		AddChild(mapBorders[4]);
-		AddChild(mapBorders[5]);
-		AddChild(mapBorders[6]);
-		AddChild(mapBorders[7]);
-	}
+	//private void AddMapBorders()
+ //   {
+	//	mapBorders[0] = new NLineSegment(new Vec2(25, 25), new Vec2(game.width / 2, 3), 0xff00ff00, 3);
+	//	mapBorders[1] = new NLineSegment(new Vec2(game.width / 2, 3), new Vec2(game.width - 25, 25), 0xff00ff00, 3);
+	//	mapBorders[2] = new NLineSegment(new Vec2(game.width - 25, 25), new Vec2(game.width - 3, game.height / 2), 0xff00ff00, 3);
+	//	mapBorders[3] = new NLineSegment(new Vec2(game.width - 3, game.height / 2), new Vec2(game.width - 25, game.height - 25), 0xff00ff00, 3);
+	//	mapBorders[4] = new NLineSegment(new Vec2(game.width - 25, game.height - 25), new Vec2(game.width / 2, game.height - 3), 0xff00ff00, 3);
+	//	mapBorders[5] = new NLineSegment(new Vec2(game.width / 2, game.height - 3), new Vec2(25, game.height - 25), 0xff00ff00, 3);
+	//	mapBorders[6] = new NLineSegment(new Vec2(25, game.height - 25), new Vec2(3, game.height / 2), 0xff00ff00, 3);
+	//	mapBorders[7] = new NLineSegment(new Vec2(3, game.height / 2), new Vec2(25, 25), 0xff00ff00, 3);
+	//	AddChild(mapBorders[0]);
+	//	AddChild(mapBorders[1]);
+	//	AddChild(mapBorders[2]);
+	//	AddChild(mapBorders[3]);
+	//	AddChild(mapBorders[4]);
+	//	AddChild(mapBorders[5]);
+	//	AddChild(mapBorders[6]);
+	//	AddChild(mapBorders[7]);
+	//}
 
 	private void HandleUnitTests()
     {

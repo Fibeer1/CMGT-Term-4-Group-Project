@@ -8,6 +8,8 @@ namespace GXPEngine
     class Button : EasyDraw
     {
         string text;
+        MyGame mainGame;
+
         public Button(string pText, float pX, float pY) : base(150, 50)
         {
             SetXY(pX, pY);
@@ -15,6 +17,7 @@ namespace GXPEngine
             Clear(System.Drawing.Color.FromArgb(50, 50, 50));
             TextAlign(CenterMode.Center, CenterMode.Center);
             Text(text);
+            mainGame = game.FindObjectOfType<MyGame>();
         }
 
         void Update()
@@ -25,16 +28,15 @@ namespace GXPEngine
                 {
                     if (text == "Start Game")
                     {
-                        MyGame myGame = game.FindObjectOfType(typeof(MyGame)) as MyGame;
                         Menu menu = parent as Menu;
                         menu.DestroyAll();
-                        myGame.StartGame();
+                        mainGame.StartLevel(0);
                     }
                     else if (text == "Restart")
                     {
                         Menu menu = parent as Menu;
                         menu.DestroyAll();
-                        game.FindObjectOfType<MyGame>().StartGame();
+                        mainGame.StartLevel(0);
                     }
                     else if (text == "Quit Game")
                     {

@@ -14,17 +14,6 @@ public class Player : Sprite
     private bool spawnedDeathParticle = false;
     private float deadTimer = 1;
 
-    //Sound variables
-    private SoundChannel audioSource;
-
-    //private Sound healthPickupSound = new Sound("HealthPickup.wav", false, false);
-    //private Sound damageTakenSound = new Sound("DamageTaken.wav", false, false);
-    //private Sound powerupPickupSound = new Sound("PowerupPickup.wav", false, false);
-    //private Sound deathSound = new Sound("DeathEffect.wav", false, false);
-    //private Sound bulletShootSound = new Sound("BulletShoot.wav", false, false);
-    //private Sound boostSound = new Sound("BoostSound.wav", false, false);
-    //private Sound superSpeedImpact = new Sound("SuperspeedImpact.wav", false, false);
-
     //Movement variables           
     public Vec2 position
     {
@@ -34,15 +23,12 @@ public class Player : Sprite
         }
     }
     private Vec2 velocity;
-    private Vec2 gravity = new Vec2(0, -2);
+    private Vec2 gravity = new Vec2(0, 1);
     private Vec2 _position;
     private int _radius;    
     private float _speed;
     private float _acceleration = 0.25f;
-    private float turnSpeed = 5;
-    private float heldSpeed = 0;
-    private float maxSpeedNormal = 5;
-    private float maxSpeedHeld = 30;
+    private float maxSpeed = 5;
 
     //Collision variables
     private Collider coll;
@@ -53,10 +39,13 @@ public class Player : Sprite
     private float colorIndicatorTimer = 0.1f;       
     private bool showColorIndicator;
 
+    //Other variables
+    public Camera camera;
+    Vec2 spawnPosition;
+
     public Player() : base("Ship.png")
     {
         SetOrigin(width / 2, height / 2);
-        ResetPosition();
         maxHealth = healthPoints;
         SetColor(0.75f, 0, 0);
         _radius = width;
@@ -64,9 +53,6 @@ public class Player : Sprite
         coll = new AABB(this, position, _radius * 0.7f, _radius * 0.7f);
         engine = ColliderManager.main;
         engine.AddTriggerCollider(coll);
-
-        //gun = new Gun();
-        //AddChild(gun);
     }
 
     protected override void OnDestroy()
@@ -78,7 +64,7 @@ public class Player : Sprite
     private void Update()
     {
         if (!isDead)
-        {
+        {           
             HandleMovement();
             HandleCollisions();
             HandleColorIndication();
@@ -91,33 +77,35 @@ public class Player : Sprite
 
     private void HandleMovement()
     {
+        camera.SetXY(position.x, position.y);
         if (Input.GetKey(Key.A))
         {
-            Turn(-turnSpeed);
+            Turn(-5);
         }
         else if (Input.GetKey(Key.D))
         {
-            Turn(turnSpeed);
+            Turn(5);
         }
         //gradually increasing/decreasing movement speed
         if (Input.GetKey(Key.W))
         {
-            if (_speed < maxSpeedNormal)
+            if (_speed < maxSpeed)
             {
                 _speed += _acceleration;
             }
         }
         if (Input.GetKey(Key.S))
         {
-            if (_speed > -maxSpeedNormal)
+            if (_speed > -maxSpeed)
             {
                 _speed -= _acceleration;
             }
         }
         velocity = Vec2.GetUnitVectorDeg(rotation) * _speed;
         _position += velocity;
-        UpdateScreenPosition();
         _speed *= 0.95f;
+        MoveUntilCollision(position.x, position.y);
+        UpdateScreenPosition();
     }
 
     private void UpdateScreenPosition()
@@ -141,6 +129,10 @@ public class Player : Sprite
         // Deal with overlaps
         foreach (Collider col in overlaps)
         {
+            if (col.owner is SolidBlock)
+            {
+                POIResolveCollision();
+            }
             //if (col.owner is Powerup)
             //{
             //    PickupPowerup(col.owner);
@@ -184,12 +176,12 @@ public class Player : Sprite
             //compare distance with player radius
             if (distance < _radius)
             {
-                DetectAndResolveLineCollisions();
+                POIResolveCollision();
             }
         }
     }
 
-    private void DetectAndResolveLineCollisions()
+    private void POIResolveCollision()
     {
         float oldDistance = (position - (position - velocity)).Length();
         float newDistance = (position - (position + velocity)).Length();
@@ -219,11 +211,17 @@ public class Player : Sprite
             }
         }
     }
-
-    public void ResetPosition()
+    public void SetSpawnPoint()
     {
-        _position.x = game.width / 2;
-        _position.y = game.height / 2;
+        spawnPosition = position;
+    }
+    public void SetPosition(Vec2 pos)
+    {
+        _position = pos;
+    }
+    void SetSpawnPosition()
+    {
+        _position = spawnPosition;
         _speed = 0;
     }
 

@@ -4,11 +4,10 @@ using Physics;
 
 
 class SolidBlock : AnimationSprite {
-	Collider myCollider;
+	public Collider myCollider;
 	ColliderManager engine;
 
 	public SolidBlock(Vec2 position, string filename, int cols, int rows) : base(filename, cols, rows) {
-		SetFrame(17);
 		SetOrigin(width/2, height/2);
 
 		// Create collider, and register it (as solid / collision object):
