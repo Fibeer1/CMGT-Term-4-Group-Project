@@ -41,6 +41,7 @@
     <Compile Include="Button.cs" />
     <Compile Include="Enemy.cs" />
     <Compile Include="Gun.cs" />
+    <Compile Include="Level.cs" />
     <Compile Include="Menu.cs" />
     <Compile Include="ObjectDeathEffect.cs" />
     <Compile Include="EntityManager.cs" />
@@ -101,6 +102,7 @@
     <Compile Include="Player.cs" />
     <Compile Include="Powerup.cs" />
     <Compile Include="RamParticle.cs" />
+    <Compile Include="SolidBlock.cs" />
     <Compile Include="WaveManager.cs" />
   </ItemGroup>
 </Project>
