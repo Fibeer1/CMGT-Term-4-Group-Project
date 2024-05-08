@@ -26,7 +26,7 @@ public struct Vec2
 	{
 		x = pX;
 		y = pY;
-	}
+	} 
 
 	public float Length()
 	{

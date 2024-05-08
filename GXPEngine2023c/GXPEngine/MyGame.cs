@@ -11,6 +11,7 @@ public class MyGame : Game
 	SoundChannel audioSource;
 	Level level;
 	LineSegment[] mapBorders = new LineSegment[8];
+	public Sprite[] staticBlocks;
 
 	public MyGame() : base(1280, 720, false, false)     // Create a window that's 1280x720 and NOT fullscreen
 	{
@@ -19,6 +20,48 @@ public class MyGame : Game
 		AddChild(menu);
 		HandleUnitTests();
 	}
+	public void TestLevel()
+    {
+		SpawnBlocks();
+		player = new Player();
+		player.SetPosition(new Vec2(Utils.Random(0, width), 0));
+		game.AddChild(player);
+		player.SetSpawnPoint();
+	}
+
+	void SpawnBlocks(int number = 50, int seed = 0, float staticBlockScaleX = 1, float staticBlockScaleY = 1)
+	{
+		List<Sprite> blocks = new List<Sprite>();
+
+		Random rnd = new Random(seed); // fixed seed
+		for (int i = 0; i < number; i++)
+		{
+			// Create a sprite with random position, rotation and scale:
+			Sprite staticBlock = new Sprite("HealthPickup.png");
+			staticBlock.SetOrigin(staticBlock.width / 2, staticBlock.height / 2);
+			staticBlock.rotation = rnd.Next(0, 180);
+			staticBlock.x = rnd.Next(0, width);
+			staticBlock.y = rnd.Next(0, height);
+			staticBlock.scaleX = ((float)rnd.NextDouble() * 2 + 0.5f) * staticBlockScaleX;
+			staticBlock.scaleY = ((float)rnd.NextDouble() * 2 + 0.5f) * staticBlockScaleY;
+			AddChild(staticBlock);
+			blocks.Add(staticBlock);
+		}
+
+		Sprite leftWall = new Sprite("HealthPickup.png");
+		leftWall.scaleY = 2 * height / leftWall.height;
+		AddChild(leftWall);
+		blocks.Add(leftWall);
+
+		Sprite rightWall = new Sprite("HealthPickup.png");
+		rightWall.scaleY = 2 * height / rightWall.height;
+		rightWall.x = width - rightWall.width;
+		AddChild(rightWall);
+		blocks.Add(rightWall);
+
+		staticBlocks = blocks.ToArray();
+	}
+
 	public void StartMenu(string menuType)
 	{
 		DestroyChildren();

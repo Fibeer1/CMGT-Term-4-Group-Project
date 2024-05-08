@@ -31,11 +31,11 @@ namespace GXPEngine
             if (Input.GetMouseButton(0))
             {
                 
-                Vector2 mousePosInScreen = player.camera.ScreenPointToGlobal(Input.mouseX, Input.mouseY);
-                Vec2 mousePos = new Vec2(mousePosInScreen.x, mousePosInScreen.y);
-                Vec2 diff = new Vec2(mousePos.x - position.x, mousePos.y - position.y);
-                float rotAngle = diff.GetAngleRadians() * 360 / Vec2.Deg2Rad(360);
-                level.rotation = rotAngle;
+                //Vector2 mousePosInScreen = player.camera.ScreenPointToGlobal(Input.mouseX, Input.mouseY);
+                //Vec2 mousePos = new Vec2(mousePosInScreen.x, mousePosInScreen.y);
+                //Vec2 diff = new Vec2(mousePos.x - position.x, mousePos.y - position.y);
+                //float rotAngle = diff.GetAngleRadians() * 360 / Vec2.Deg2Rad(360);
+                //level.rotation = rotAngle;
                 if (level.parent != this)
                 {
                     //level.parent = this;

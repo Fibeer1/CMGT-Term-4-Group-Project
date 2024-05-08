@@ -11,22 +11,23 @@ namespace GXPEngine
     {
         public Player player;
         Camera camera;
-        public HUD hud;
-
+        public HUD hud;        
         int lvlNumber;
 
-        public Level(int index) : base("MapEmpty.png")
+        public Level(int index) : base("MapEmpty.png", false, false)
         {
             SetOrigin(width / 2, height / 2);
             Map levelData = MapParser.ReadMap("Level " + index + ".tmx");
             SpawnTiles(levelData);
             SpawnObjects(levelData);
+            
             List<GameObject> children = GetChildren();
             foreach (GameObject child in children)
             {
                 child.x -= width / 2;
                 child.y -= height / 2;
             }
+
             player.SetPosition(new Vec2(player.position.x - width / 2, player.position.y - height / 2));
             camera = new Camera(0, 0, game.width, game.height);
             camera.SetScaleXY(1.5f, 1.5f);
@@ -44,6 +45,8 @@ namespace GXPEngine
             camera.AddChild(hud);
             hud.SetXY(camera.x - game.width / 2, camera.y - game.height / 2);           
         }
+
+        
         private void SpawnTiles(Map leveldata)
         {
             if (leveldata.Layers == null || leveldata.Layers.Length == 0)
@@ -60,11 +63,9 @@ namespace GXPEngine
                     if (tileNumber > 0)
                     {
                         string tilesetFile = "OverworldTileSet.png";
-                        SolidBlock tile = new SolidBlock(new Vec2(0,0), tilesetFile, 9, 4);
-                        tile.SetFrame(tileNumber - 1);
+                        CollisionTile tile = new CollisionTile(tilesetFile, 9, 4, tileNumber - 1);
                         tile.x = col * tile.width;
                         tile.y = row * tile.height;
-                        tile.MoveColliderWithBlock();
                         AddChild(tile);
                     }
                 }

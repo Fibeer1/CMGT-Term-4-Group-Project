@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using GXPEngine;
 using Physics;
+using GXPEngine.Core;
 
 public class Player : Sprite
 {
@@ -23,16 +24,17 @@ public class Player : Sprite
         }
     }
     private Vec2 velocity;
-    private Vec2 gravity = new Vec2(0, 1);
     private Vec2 _position;
+    private Vec2 acceleration;
+    private float angularVelocity = 0;
+    private float torque = 0;
     private int _radius;    
     private float _speed;
-    private float _acceleration = 0.25f;
-    private float maxSpeed = 5;
 
-    //Collision variables
-    private Collider coll;
-    private ColliderManager engine;
+    //Physics variables
+    float bounciness = 0.2f;
+    float inverseMass = 1;
+    float inverseMomentOfInertia = 0.01f;
 
     //Color Indicator variables
     private float[] colorIndicationRGB = new float[3];
@@ -43,22 +45,22 @@ public class Player : Sprite
     public Camera camera;
     Vec2 spawnPosition;
 
-    public Player() : base("Ship.png")
+    public Player() : base("PowerupBox.png")
     {
         SetOrigin(width / 2, height / 2);
         maxHealth = healthPoints;
         SetColor(0.75f, 0, 0);
         _radius = width;
-
-        coll = new AABB(this, position, _radius * 0.7f, _radius * 0.7f);
-        engine = ColliderManager.main;
-        engine.AddTriggerCollider(coll);
+        acceleration = new Vec2(0, 0.1f);
+        ComputeMassInertia(1);
     }
 
-    protected override void OnDestroy()
+    void ComputeMassInertia(float density)
     {
-        // Remove the collider when the sprite is destroyed:
-        engine.RemoveTriggerCollider(coll);
+        float mass = width * height * density;
+        float inertia = mass * (width * width + height * height) / 12;
+        inverseMass = 1 / mass;
+        inverseMomentOfInertia = 1 / inertia;
     }
 
     private void Update()
@@ -77,75 +79,83 @@ public class Player : Sprite
 
     private void HandleMovement()
     {
-        camera.SetXY(position.x, position.y);
-        if (Input.GetKey(Key.A))
-        {
-            Turn(-5);
-        }
-        else if (Input.GetKey(Key.D))
-        {
-            Turn(5);
-        }
-        //gradually increasing/decreasing movement speed
-        if (Input.GetKey(Key.W))
-        {
-            if (_speed < maxSpeed)
-            {
-                _speed += _acceleration;
-            }
-        }
-        if (Input.GetKey(Key.S))
-        {
-            if (_speed > -maxSpeed)
-            {
-                _speed -= _acceleration;
-            }
-        }
-        velocity = Vec2.GetUnitVectorDeg(rotation) * _speed;
+        //camera.SetXY(position.x, position.y);
+
+        // Standard Euler integration (for position):
+        velocity += acceleration;
         _position += velocity;
-        _speed *= 0.95f;
-        MoveUntilCollision(position.x, position.y);
+
+        angularVelocity += torque;
+        rotation += Vec2.Rad2Deg(angularVelocity);
+
         UpdateScreenPosition();
     }
 
     private void UpdateScreenPosition()
     {
-        x = _position.x;
-        y = _position.y;
-        coll.position = _position;
+        x = position.x;
+        y = position.y;
     }
 
     private void HandleCollisions()
     {
-        FindEarliestCollisionWithRectangles();
-        FindEarliestCollisionWithLineSegments();
+        GameObject[] overlaps = GetCollisions();
+
+        // Collision resolve (position, velocity and angular velocity):
+        foreach (GameObject other in overlaps)
+        {
+            if (other != this)
+            {
+                ResolveCollision(other);
+            }
+        }
+        UpdateScreenPosition();
     }
 
-    private void FindEarliestCollisionWithRectangles()
+    private void ResolveCollision(GameObject other)
     {
-        // Check overlapping trigger colliders:
-        List<Collider> overlaps = engine.GetOverlaps(coll);
+        // A GXPEngine method for finding all kinds of useful info about collisions (=overlaps):
+        Collision colInfo = collider.GetCollisionInfo(other.collider);
 
-        // Deal with overlaps
-        foreach (Collider col in overlaps)
+        //// Translate from GXPEngine.Core.Vector2 to our own Vec2:
+        // collision normal:
+        Vec2 normal = new Vec2(colInfo.normal);
+        // The exact collision point: 
+        // (This might be a corner of this sprite, or a corner of the other sprite)
+        Vec2 point = new Vec2(colInfo.point);
+
+        // Resolve collision - the position reset part:
+        // (Move until they are not overlapping anymore.)
+        _position += normal * colInfo.penetrationDepth;
+
+        // Compute some vectors related to the exact collision point:
+
+        Vec2 r1 = point - position; // from center of this to collision point
+        Vec2 r1perp = new Vec2(-r1.y, r1.x); // the normal vector of r1 (not unit!)
+
+        Vec2 pointVelocity = velocity;
+
+        float impulse =
+            -(1 + bounciness) * (pointVelocity.Dot(normal)) /
+            (
+                normal.Dot(normal) * inverseMass +
+                r1perp.Dot(normal) * r1perp.Dot(normal) * inverseMomentOfInertia
+            );
+
+        if (impulse < 0)
         {
-            if (col.owner is SolidBlock)
-            {
-                POIResolveCollision();
-            }
-            //if (col.owner is Powerup)
-            //{
-            //    PickupPowerup(col.owner);
-            //}
-            //else if (col.owner is HealthPickup)
-            //{
-            //    PickupHealth(col.owner);
-            //}
-            //else if (col.owner is Enemy)
-            //{
-            //    InteractWithEnemy(col.owner);
-            //}
+            Console.WriteLine("Impulse: {0}", impulse);
+            return;
         }
+
+        // Apply impulse to linear velocity
+        Vec2 impulseVector = impulse * normal;
+        velocity += impulseVector * inverseMass;
+
+        // Calculate change in angular velocity (angular impulse)
+        float angularImpulse = r1perp.Dot(normal) * impulse;
+        // Apply angular impulse to angular velocity
+        angularVelocity += angularImpulse * inverseMomentOfInertia;
     }
 
     private void PickupHealth(GameObject healthBox)
@@ -162,35 +172,16 @@ public class Player : Sprite
         healthBox.LateDestroy();
     }
 
-    private void FindEarliestCollisionWithLineSegments()
-    {
-        //calculate correct distance from the player's center to the line
-        NLineSegment[] lineSegments = game.FindObjectsOfType<NLineSegment>();
-        for (int i = 0; i < lineSegments.Length; i++)
-        {
-            Vec2 diff = lineSegments[i].end - position;
-            //calculate the normal of the line
-            Vec2 lineNormal = (lineSegments[i].start - lineSegments[i].end).Normal();
-            //project the distance onto the normal so that it is exactly between the point of collision and the player's center
-            float distance = diff.ScalarProjection(lineNormal);
-            //compare distance with player radius
-            if (distance < _radius)
-            {
-                POIResolveCollision();
-            }
-        }
-    }
+    //private void POIResolveCollision()
+    //{
+    //    float oldDistance = (position - (position - velocity)).Length();
+    //    float newDistance = (position - (position + velocity)).Length();
+    //    float timeOfImpact = oldDistance / newDistance;
 
-    private void POIResolveCollision()
-    {
-        float oldDistance = (position - (position - velocity)).Length();
-        float newDistance = (position - (position + velocity)).Length();
-        float timeOfImpact = oldDistance / newDistance;
-
-        // Calculate point of impact
-        Vec2 pointOfImpact = position - timeOfImpact * velocity;
-        _position = pointOfImpact;
-    }
+    //    // Calculate point of impact
+    //    Vec2 pointOfImpact = position - timeOfImpact * velocity;
+    //    _position = pointOfImpact;
+    //}
 
     private void HandleColorIndication()
     {
@@ -229,7 +220,6 @@ public class Player : Sprite
     {
         if (isDead)
         {
-            engine.RemoveTriggerCollider(coll);
             if (!spawnedDeathParticle)
             {
                 spawnedDeathParticle = true;

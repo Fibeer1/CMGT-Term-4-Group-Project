@@ -47,17 +47,7 @@ namespace GXPEngine
             title.TextAlign(CenterMode.Center, CenterMode.Center);
             title.SetXY(game.width / 2 - title.width / 2, 50);
             title.TextSize(30);
-            title.Text("Interstellar Carnage");
-            controls.SetXY(5, 50);
-            controls.Text("Controls: \n" +
-            "W - forwards \n" +
-            "S - backwards \n" +
-            "A - turn left \n" +
-            "D - turn right \n" +
-            "LShift - ram ability \n" +
-            "Enter - explode ability \n" +
-            "LMB - shoot \n" +
-            "F - toggle auto-aim \n");
+            title.Text("Slime Game");
             AddChild(title);
             AddChild(controls);
             AddChild(startButton);
