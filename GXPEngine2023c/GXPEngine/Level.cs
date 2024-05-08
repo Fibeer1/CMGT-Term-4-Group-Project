@@ -20,17 +20,17 @@ namespace GXPEngine
             Map levelData = MapParser.ReadMap("Level " + index + ".tmx");
             SpawnTiles(levelData);
             SpawnObjects(levelData);
-            
+
             List<GameObject> children = GetChildren();
             foreach (GameObject child in children)
             {
                 child.x -= width / 2;
                 child.y -= height / 2;
             }
-
             player.SetPosition(new Vec2(player.position.x - width / 2, player.position.y - height / 2));
             camera = new Camera(0, 0, game.width, game.height);
             camera.SetScaleXY(1.5f, 1.5f);
+            camera.SetXY(player.position.x, player.position.y);
             game.AddChild(camera);
             player.camera = camera;
             lvlNumber = index;
@@ -41,9 +41,9 @@ namespace GXPEngine
             
 
             //HUD gets added last
-            hud = new HUD();
-            camera.AddChild(hud);
-            hud.SetXY(camera.x - game.width / 2, camera.y - game.height / 2);           
+            //hud = new HUD();
+            //camera.AddChild(hud);
+            //hud.SetXY(camera.x - game.width / 2, camera.y - game.height / 2);           
         }
 
         
@@ -92,52 +92,52 @@ namespace GXPEngine
                         game.AddChild(player);
                         player.SetSpawnPoint();
                         break;
-                    case "Finish":
-                        Finish finish = new Finish();
-                        finish.SetXY(obj.X, obj.Y);
-                        AddChild(finish);
-                        break;
+                    //case "Finish":
+                    //    Finish finish = new Finish();
+                    //    finish.SetXY(obj.X, obj.Y);
+                    //    AddChild(finish);
+                    //    break;
                     default:
                         break;
                 }
             }           
         }
 
-        public void NewEnemies()
-        {
-            Map levelData = MapParser.ReadMap("Level " + lvlNumber + ".tmx");
+        //public void NewEnemies()
+        //{
+        //    Map levelData = MapParser.ReadMap("Level " + lvlNumber + ".tmx");
 
-            List<GameObject> children = GetChildren();
-            for (int i = 0; i < children.Count; i++)
-            {
-                //if (children[i] is Enemy)
-                //{
-                //    children[i].LateDestroy();
-                //}
-            }
+        //    List<GameObject> children = GetChildren();
+        //    for (int i = 0; i < children.Count; i++)
+        //    {
+        //        //if (children[i] is Enemy)
+        //        //{
+        //        //    children[i].LateDestroy();
+        //        //}
+        //    }
             
-            if (levelData.ObjectGroups == null || levelData.ObjectGroups.Length == 0)
-            {
-                return;
-            }
-            ObjectGroup objectGroup = levelData.ObjectGroups[0];
-            if (objectGroup.Objects == null || objectGroup.Objects.Length == 0)
-            {
-                return;
-            }
+        //    if (levelData.ObjectGroups == null || levelData.ObjectGroups.Length == 0)
+        //    {
+        //        return;
+        //    }
+        //    ObjectGroup objectGroup = levelData.ObjectGroups[0];
+        //    if (objectGroup.Objects == null || objectGroup.Objects.Length == 0)
+        //    {
+        //        return;
+        //    }
 
-            foreach (TiledObject obj in objectGroup.Objects)
-            {
-                //switch (obj.Name)
-                //{
-                //    case "EnemyTrigger":
-                //        Enemy enemy = new Enemy();
-                //        enemy.SetXY(obj.X, obj.Y);
-                //        AddChild(enemy);
-                //        enemy.Start();
-                //        break;
-                //}
-            }
-        }
+        //    foreach (TiledObject obj in objectGroup.Objects)
+        //    {
+        //        //switch (obj.Name)
+        //        //{
+        //        //    case "EnemyTrigger":
+        //        //        Enemy enemy = new Enemy();
+        //        //        enemy.SetXY(obj.X, obj.Y);
+        //        //        AddChild(enemy);
+        //        //        enemy.Start();
+        //        //        break;
+        //        //}
+        //    }
+        //}
     }
 }

@@ -28,12 +28,13 @@ public class Player : Sprite
     private Vec2 acceleration;
     private float angularVelocity = 0;
     private float torque = 0;
+    private float frictionCoefficient = 0.01f;
     private int _radius;    
     private float _speed;
 
     //Physics variables
-    float bounciness = 0.2f;
-    float inverseMass = 1;
+    float bounciness = 0f;
+    float inverseMass = 0.5f;
     float inverseMomentOfInertia = 0.01f;
 
     //Color Indicator variables
@@ -44,6 +45,7 @@ public class Player : Sprite
     //Other variables
     public Camera camera;
     Vec2 spawnPosition;
+
 
     public Player() : base("PowerupBox.png")
     {
@@ -99,6 +101,7 @@ public class Player : Sprite
 
     private void HandleCollisions()
     {
+        // Discrete collision detection:
         GameObject[] overlaps = GetCollisions();
 
         // Collision resolve (position, velocity and angular velocity):
@@ -144,9 +147,16 @@ public class Player : Sprite
 
         if (impulse < 0)
         {
-            Console.WriteLine("Impulse: {0}", impulse);
+            //Console.WriteLine("Impulse: {0}", impulse);
             return;
         }
+
+        // Apply friction
+        Vec2 relativeVelocity = velocity * -1;
+        float relativeTangentVelocity = relativeVelocity.Dot(r1perp.Normalized());
+        float frictionImpulseMagnitude = -frictionCoefficient * impulse * Math.Sign(relativeTangentVelocity);
+
+        impulse += frictionImpulseMagnitude;
 
         // Apply impulse to linear velocity
         Vec2 impulseVector = impulse * normal;

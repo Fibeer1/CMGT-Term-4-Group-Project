@@ -30,8 +30,8 @@ namespace GXPEngine
                     {
                         Menu menu = parent as Menu;
                         menu.DestroyAll();
-                        //mainGame.StartLevel(0);
-                        mainGame.TestLevel();
+                        mainGame.StartLevel(0);
+                        //mainGame.TestLevel();
                     }
                     else if (text == "Restart")
                     {

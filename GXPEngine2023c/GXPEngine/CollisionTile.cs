@@ -8,7 +8,7 @@ namespace GXPEngine
 {
     class CollisionTile : AnimationSprite
     {
-        public CollisionTile(string filename, int cols, int rows, int tileFrame) : base (filename, cols, rows, tileFrame, false, false)
+        public CollisionTile(string filename, int cols, int rows, int tileFrame) : base (filename, cols, rows, tileFrame, false, true)
         {
 
         }

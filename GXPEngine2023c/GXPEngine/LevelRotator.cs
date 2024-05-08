@@ -21,30 +21,60 @@ namespace GXPEngine
         public Level level;
         public Player player;
 
-        public LevelRotator() : base("Empty.png")
+        private Vec2 mousePos;
+        private Vec2 initialMousePos;
+        private Vec2 cameraPos;
+        private bool isRotating;
+        private float minRotation = -90f;
+        private float maxRotation = 120f;
+
+        public LevelRotator() : base("Empty.png", false, false)
         {
-            SetOrigin(width / 2, height / 2);           
+            SetOrigin(width / 2, height / 2);            
         }
         private void Update()
         {
-            _position = player.position;
-            if (Input.GetMouseButton(0))
+            if (player.camera != null)
             {
-                
-                //Vector2 mousePosInScreen = player.camera.ScreenPointToGlobal(Input.mouseX, Input.mouseY);
-                //Vec2 mousePos = new Vec2(mousePosInScreen.x, mousePosInScreen.y);
-                //Vec2 diff = new Vec2(mousePos.x - position.x, mousePos.y - position.y);
-                //float rotAngle = diff.GetAngleRadians() * 360 / Vec2.Deg2Rad(360);
-                //level.rotation = rotAngle;
-                if (level.parent != this)
+                cameraPos = new Vec2(player.camera.x, player.camera.y);
+            }
+            _position = player.position;
+            Vector2 mousePosInScreen = player.camera.ScreenPointToGlobal(Input.mouseX, Input.mouseY);
+            mousePos = new Vec2(mousePosInScreen.x, mousePosInScreen.y);
+            //level.rotation -= 5;
+            //Console.WriteLine(level.rotation);
+
+            if (Input.GetMouseButton(0) && player.camera.ScreenPointInWindow(Input.mouseX, Input.mouseY))
+            {
+                if (!isRotating)
                 {
-                    //level.parent = this;
-                    //level.SetOrigin(player.camera.x, player.camera.y);
+                    isRotating = true;
+                    initialMousePos = mousePos;
                 }
+
+                Vec2 currentMousePosition = mousePos;
+
+                // Adjust mouse position relative to camera position
+                Vec2 adjustedInitialMousePosition = initialMousePos - cameraPos;
+                Vec2 adjustedCurrentMousePosition = currentMousePosition - cameraPos;
+
+                float rotationAngle = adjustedCurrentMousePosition.GetAngleDegrees() - adjustedInitialMousePosition.GetAngleDegrees();
+                //Console.WriteLine(rotationAngle - level.rotation);
+                //if (rotationAngle - level.rotation > 10)
+                //{
+                //    rotationAngle -= 10;
+                //}
+
+                float newRotation = level.rotation + rotationAngle;
+                
+                level.rotation = Mathf.Clamp(newRotation, minRotation, maxRotation);
+                Console.WriteLine(level.rotation);
+
+                initialMousePos = currentMousePosition;
             }
             else
             {
-                //level.parent = game;
+                isRotating = false;
             }
         }
     }
