@@ -28,9 +28,9 @@ public class Player : Sprite
     private Vec2 acceleration;
     private float angularVelocity = 0;
     private float torque = 0;
-    private float frictionCoefficient = 0.01f;
-    private int _radius;    
-    private float _speed;
+    private float frictionCoefficient = 1f;
+    private float _gravity = 0.1f;
+    private float angularDampCoefficient = 0.9f;
 
     //Physics variables
     float bounciness = 0f;
@@ -52,8 +52,9 @@ public class Player : Sprite
         SetOrigin(width / 2, height / 2);
         maxHealth = healthPoints;
         SetColor(0.75f, 0, 0);
-        _radius = width;
-        acceleration = new Vec2(0, 0.1f);
+        acceleration = new Vec2(0, _gravity);
+        Vec2 force = new Vec2(0, 5);
+        velocity += force;
         ComputeMassInertia(1);
     }
 
@@ -68,7 +69,8 @@ public class Player : Sprite
     private void Update()
     {
         if (!isDead)
-        {           
+        {
+            HandleGravityDirection();
             HandleMovement();
             HandleCollisions();
             HandleColorIndication();
@@ -76,6 +78,26 @@ public class Player : Sprite
         else
         {
             HandleDying();
+        }
+    }
+
+    private void HandleGravityDirection()
+    {
+        if (Input.GetKeyDown(Key.LEFT))
+        {
+            acceleration = new Vec2(-_gravity, 0);
+        }
+        else if (Input.GetKeyDown(Key.RIGHT))
+        {
+            acceleration = new Vec2(_gravity, 0);
+        }
+        else if (Input.GetKeyDown(Key.UP))
+        {
+            acceleration = new Vec2(0, -_gravity);
+        }
+        else if (Input.GetKeyDown(Key.DOWN))
+        {
+            acceleration = new Vec2(0, _gravity);
         }
     }
 
@@ -87,7 +109,7 @@ public class Player : Sprite
         velocity += acceleration;
         _position += velocity;
 
-        angularVelocity += torque;
+        angularVelocity *= angularDampCoefficient;
         rotation += Vec2.Rad2Deg(angularVelocity);
 
         UpdateScreenPosition();
@@ -101,10 +123,20 @@ public class Player : Sprite
 
     private void HandleCollisions()
     {
-        // Discrete collision detection:
+        //Continuous collision detection:
+        // Interpolate position
+        Vec2 intermediatePosition = position + velocity;
+
+        // Check collisions at intermediate position
+        GameObject detectedCollision = CheckCollisionsAt(intermediatePosition);
+        
+        if (detectedCollision != null)
+        {
+            ResolveCollision(detectedCollision);
+        }
         GameObject[] overlaps = GetCollisions();
 
-        // Collision resolve (position, velocity and angular velocity):
+        // Resolve collisions
         foreach (GameObject other in overlaps)
         {
             if (other != this)
@@ -112,7 +144,31 @@ public class Player : Sprite
                 ResolveCollision(other);
             }
         }
+
         UpdateScreenPosition();
+    }
+
+    private GameObject CheckCollisionsAt(Vec2 collisionPos)
+    {
+        Vec2 originalPosition = position;
+        _position = collisionPos;
+
+        // Check collisions with other objects
+        GameObject[] overlaps = GetCollisions();
+
+        // Move object back to original position
+        _position = originalPosition;
+
+
+        // Check if any collisions were detected
+        foreach (GameObject other in overlaps)
+        {
+            if (other != this)
+            {
+                return other;
+            }
+        }
+        return null;
     }
 
     private void ResolveCollision(GameObject other)
@@ -120,7 +176,7 @@ public class Player : Sprite
         // A GXPEngine method for finding all kinds of useful info about collisions (=overlaps):
         Collision colInfo = collider.GetCollisionInfo(other.collider);
 
-        //// Translate from GXPEngine.Core.Vector2 to our own Vec2:
+        // Translate from GXPEngine.Core.Vector2 to our own Vec2:
         // collision normal:
         Vec2 normal = new Vec2(colInfo.normal);
         // The exact collision point: 
@@ -136,36 +192,28 @@ public class Player : Sprite
         Vec2 r1 = point - position; // from center of this to collision point
         Vec2 r1perp = new Vec2(-r1.y, r1.x); // the normal vector of r1 (not unit!)
 
-        Vec2 pointVelocity = velocity;
+        Vec2 pointVelocity = velocity + r1perp * angularVelocity;
 
-        float impulse =
+        float impulseMagnitude =
             -(1 + bounciness) * (pointVelocity.Dot(normal)) /
             (
                 normal.Dot(normal) * inverseMass +
                 r1perp.Dot(normal) * r1perp.Dot(normal) * inverseMomentOfInertia
             );
 
-        if (impulse < 0)
+        if (impulseMagnitude < 0)
         {
             //Console.WriteLine("Impulse: {0}", impulse);
             return;
         }
 
         // Apply friction
-        Vec2 relativeVelocity = velocity * -1;
-        float relativeTangentVelocity = relativeVelocity.Dot(r1perp.Normalized());
-        float frictionImpulseMagnitude = -frictionCoefficient * impulse * Math.Sign(relativeTangentVelocity);
+        Vec2 relativeVelocity = velocity + r1perp * angularVelocity; // Relative velocity at collision point
+        Vec2 friction = relativeVelocity * frictionCoefficient; // Friction force
+        Vec2 impulse = impulseMagnitude * normal;
 
-        impulse += frictionImpulseMagnitude;
-
-        // Apply impulse to linear velocity
-        Vec2 impulseVector = impulse * normal;
-        velocity += impulseVector * inverseMass;
-
-        // Calculate change in angular velocity (angular impulse)
-        float angularImpulse = r1perp.Dot(normal) * impulse;
-        // Apply angular impulse to angular velocity
-        angularVelocity += angularImpulse * inverseMomentOfInertia;
+        velocity += (impulse + friction) * inverseMass;
+        angularVelocity += r1perp.Dot(normal) * impulseMagnitude * inverseMomentOfInertia;
     }
 
     private void PickupHealth(GameObject healthBox)
@@ -182,16 +230,16 @@ public class Player : Sprite
         healthBox.LateDestroy();
     }
 
-    //private void POIResolveCollision()
-    //{
-    //    float oldDistance = (position - (position - velocity)).Length();
-    //    float newDistance = (position - (position + velocity)).Length();
-    //    float timeOfImpact = oldDistance / newDistance;
+    private void POIResolveCollision()
+    {
+        float oldDistance = (position - (position - velocity)).Length();
+        float newDistance = (position - (position + velocity)).Length();
+        float timeOfImpact = oldDistance / newDistance;
 
-    //    // Calculate point of impact
-    //    Vec2 pointOfImpact = position - timeOfImpact * velocity;
-    //    _position = pointOfImpact;
-    //}
+        // Calculate point of impact
+        Vec2 pointOfImpact = position - timeOfImpact * velocity;
+        _position = pointOfImpact;
+    }
 
     private void HandleColorIndication()
     {
@@ -223,7 +271,6 @@ public class Player : Sprite
     void SetSpawnPosition()
     {
         _position = spawnPosition;
-        _speed = 0;
     }
 
     private void HandleDying()

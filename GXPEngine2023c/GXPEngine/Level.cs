@@ -11,8 +11,7 @@ namespace GXPEngine
     {
         public Player player;
         Camera camera;
-        public HUD hud;        
-        int lvlNumber;
+        public HUD hud;
 
         public Level(int index) : base("MapEmpty.png", false, false)
         {
@@ -33,17 +32,16 @@ namespace GXPEngine
             camera.SetXY(player.position.x, player.position.y);
             game.AddChild(camera);
             player.camera = camera;
-            lvlNumber = index;
-            LevelRotator rotator = new LevelRotator();
-            rotator.level = this;
-            rotator.player = player;
-            camera.AddChild(rotator);
-            
+            //LevelRotator rotator = new LevelRotator();
+            //rotator.level = this;
+            //rotator.player = player;
+            //rotator.camera = camera;
+            //game.AddChild(rotator);
 
             //HUD gets added last
-            //hud = new HUD();
-            //camera.AddChild(hud);
-            //hud.SetXY(camera.x - game.width / 2, camera.y - game.height / 2);           
+            hud = new HUD();
+            camera.AddChild(hud);
+            hud.SetXY(camera.x - game.width / 2, camera.y - game.height / 2);
         }
 
         
