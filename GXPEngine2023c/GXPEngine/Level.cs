@@ -12,32 +12,20 @@ namespace GXPEngine
         public Player player;
         Camera camera;
         public HUD hud;
+        private int levelIndex;
 
         public Level(int index) : base("MapEmpty.png", false, false)
         {
-            SetOrigin(width / 2, height / 2);
             Map levelData = MapParser.ReadMap("Level " + index + ".tmx");
             SpawnTiles(levelData);
             SpawnObjects(levelData);
-
-            List<GameObject> children = GetChildren();
-            foreach (GameObject child in children)
-            {
-                child.x -= width / 2;
-                child.y -= height / 2;
-            }
-            player.SetPosition(new Vec2(player.position.x - width / 2, player.position.y - height / 2));
             camera = new Camera(0, 0, game.width, game.height);
             camera.SetScaleXY(1.5f, 1.5f);
             camera.SetXY(player.position.x, player.position.y);
             game.AddChild(camera);
             player.camera = camera;
-            //LevelRotator rotator = new LevelRotator();
-            //rotator.level = this;
-            //rotator.player = player;
-            //rotator.camera = camera;
-            //game.AddChild(rotator);
-
+            levelIndex = index;
+            SetScaleXY(1.1f, 1.1f);
             //HUD gets added last
             hud = new HUD();
             camera.AddChild(hud);
@@ -60,8 +48,13 @@ namespace GXPEngine
                     int tileNumber = tileNumbers[col, row];
                     if (tileNumber > 0)
                     {
-                        string tilesetFile = "OverworldTileSet.png";
-                        CollisionTile tile = new CollisionTile(tilesetFile, 9, 4, tileNumber - 1);
+                        string tilesetFile = "NewTutorialTileset.png";
+                        if (levelIndex == 1)
+                        {
+                            tilesetFile = "TilesetPlaceholder.png";
+                        }                   
+                        CollisionTile tile = new CollisionTile(tilesetFile, 3, 3);
+                        tile.SetFrame(tileNumber - 1);
                         tile.x = col * tile.width;
                         tile.y = row * tile.height;
                         AddChild(tile);

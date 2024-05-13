@@ -27,8 +27,7 @@ public class Player : Sprite
     private Vec2 _position;
     private Vec2 acceleration;
     private float angularVelocity = 0;
-    private float torque = 0;
-    private float frictionCoefficient = 1f;
+    private float frictionCoefficient = 0.01f;
     private float _gravity = 0.1f;
     private float angularDampCoefficient = 0.9f;
 
@@ -42,10 +41,14 @@ public class Player : Sprite
     private float colorIndicatorTimer = 0.1f;       
     private bool showColorIndicator;
 
+    //Mechanics variables
+    private bool isCollidingWithBlock;
+    private string gravityDirection; //Can be Up, Right, Left, Down
+
     //Other variables
     public Camera camera;
-    Vec2 spawnPosition;
-
+    private Vec2 spawnPosition;
+    bool standingStill => velocity.x <= 1 && velocity.y <= 1 && velocity.x >= -1 && velocity.y >= -1;
 
     public Player() : base("PowerupBox.png")
     {
@@ -53,9 +56,8 @@ public class Player : Sprite
         maxHealth = healthPoints;
         SetColor(0.75f, 0, 0);
         acceleration = new Vec2(0, _gravity);
-        Vec2 force = new Vec2(0, 5);
-        velocity += force;
-        ComputeMassInertia(1);
+        gravityDirection = "Down";
+        ComputeMassInertia(1f);
     }
 
     void ComputeMassInertia(float density)
@@ -72,6 +74,7 @@ public class Player : Sprite
         {
             HandleGravityDirection();
             HandleMovement();
+            HandleCameraMovement();
             HandleCollisions();
             HandleColorIndication();
         }
@@ -83,28 +86,44 @@ public class Player : Sprite
 
     private void HandleGravityDirection()
     {
-        if (Input.GetKeyDown(Key.LEFT))
-        {
-            acceleration = new Vec2(-_gravity, 0);
+        if (isCollidingWithBlock)
+        {            
+            if (Input.GetKeyDown(Key.LEFT) && standingStill)
+            {
+                isCollidingWithBlock = false;
+                acceleration = new Vec2(-_gravity, 0);
+                gravityDirection = "Left";
+            }
+            else if (Input.GetKeyDown(Key.RIGHT) && standingStill)
+            {
+                isCollidingWithBlock = false;
+                acceleration = new Vec2(_gravity, 0);
+                gravityDirection = "Right";
+            }
+            else if (Input.GetKeyDown(Key.UP) && standingStill)
+            {
+                isCollidingWithBlock = false;
+                acceleration = new Vec2(0, -_gravity);
+                gravityDirection = "Up";
+            }
+            else if (Input.GetKeyDown(Key.DOWN) && standingStill)
+            {
+                isCollidingWithBlock = false;
+                acceleration = new Vec2(0, _gravity);
+                gravityDirection = "Down";
+            }
         }
-        else if (Input.GetKeyDown(Key.RIGHT))
-        {
-            acceleration = new Vec2(_gravity, 0);
-        }
-        else if (Input.GetKeyDown(Key.UP))
-        {
-            acceleration = new Vec2(0, -_gravity);
-        }
-        else if (Input.GetKeyDown(Key.DOWN))
-        {
-            acceleration = new Vec2(0, _gravity);
-        }
+    }
+
+    private void HandleCameraMovement()
+    {
+        Vec2 camPos = new Vec2(camera.x, camera.y);
+        Vec2 desiredCamPos = Vec2.Lerp(camPos, position, 0.125f);
+        camera.SetXY(desiredCamPos.x, desiredCamPos.y);
     }
 
     private void HandleMovement()
     {
-        //camera.SetXY(position.x, position.y);
-
         // Standard Euler integration (for position):
         velocity += acceleration;
         _position += velocity;
@@ -132,8 +151,11 @@ public class Player : Sprite
         
         if (detectedCollision != null)
         {
+            isCollidingWithBlock = true;
             ResolveCollision(detectedCollision);
         }
+
+        //Discrete collision detection (Needed because the continuous one bugs sometimes):
         GameObject[] overlaps = GetCollisions();
 
         // Resolve collisions
@@ -141,9 +163,10 @@ public class Player : Sprite
         {
             if (other != this)
             {
+                isCollidingWithBlock = true;
                 ResolveCollision(other);
             }
-        }
+        }        
 
         UpdateScreenPosition();
     }
@@ -155,6 +178,16 @@ public class Player : Sprite
 
         // Check collisions with other objects
         GameObject[] overlaps = GetCollisions();
+
+        // Check if the player is colliding with any other object
+        if (overlaps.Length > 0)
+        {
+            isCollidingWithBlock = true;
+        }
+        if (overlaps.Length > 1 && Mathf.Abs(velocity.x) > 10 || Mathf.Abs(velocity.y) > 10)
+        {
+            angularVelocity *= 0.01f;
+        }
 
         // Move object back to original position
         _position = originalPosition;
@@ -211,6 +244,15 @@ public class Player : Sprite
         Vec2 relativeVelocity = velocity + r1perp * angularVelocity; // Relative velocity at collision point
         Vec2 friction = relativeVelocity * frictionCoefficient; // Friction force
         Vec2 impulse = impulseMagnitude * normal;
+
+        float torque = r1perp.Dot(friction);
+        angularVelocity -= torque * inverseMomentOfInertia;
+
+        // Dampen linear and angular velocities upon collision
+        float linearDamping = 0.5f;
+        float angularDamping = 0.5f;
+        velocity *= linearDamping;
+        angularVelocity *= angularDamping;
 
         velocity += (impulse + friction) * inverseMass;
         angularVelocity += r1perp.Dot(normal) * impulseMagnitude * inverseMomentOfInertia;
