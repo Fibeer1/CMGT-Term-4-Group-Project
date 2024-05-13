@@ -5,12 +5,12 @@ using System.Text;
 
 namespace GXPEngine
 {
-    class Button : EasyDraw
+    class ButtonUI : EasyDraw
     {
         string text;
         MyGame mainGame;
 
-        public Button(string pText, float pX, float pY) : base(150, 50)
+        public ButtonUI(string pText, float pX, float pY) : base(150, 50)
         {
             SetXY(pX, pY);
             text = pText;
@@ -30,14 +30,13 @@ namespace GXPEngine
                     {
                         Menu menu = parent as Menu;
                         menu.DestroyAll();
-                        mainGame.StartLevel(0);
-                        //mainGame.TestLevel();
+                        mainGame.StartLevel(mainGame.currentLevelIndex);
                     }
                     else if (text == "Restart")
                     {
                         Menu menu = parent as Menu;
                         menu.DestroyAll();
-                        mainGame.StartLevel(0);
+                        mainGame.StartLevel(mainGame.currentLevelIndex);
                     }
                     else if (text == "Quit Game")
                     {

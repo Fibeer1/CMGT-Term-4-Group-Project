@@ -41,9 +41,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Button.cs" />
+    <Compile Include="ButtonObject.cs" />
+    <Compile Include="ButtonUI.cs" />
+    <Compile Include="ButtonWall.cs" />
+    <Compile Include="CollectableStar.cs" />
     <Compile Include="CollisionTile.cs" />
     <Compile Include="Finish.cs" />
+    <Compile Include="FireEmitter.cs" />
+    <Compile Include="FireParticle.cs" />
     <Compile Include="GXPEngine\AddOns\Gizmos.cs" />
     <Compile Include="GXPEngine\AddOns\SpriteBatch.cs" />
     <Compile Include="GXPEngine\AddOns\TiledLoader.cs" />
@@ -51,6 +56,7 @@
     <Compile Include="Level.cs" />
     <Compile Include="LevelRotator.cs" />
     <Compile Include="Menu.cs" />
+    <Compile Include="MimicBox.cs" />
     <Compile Include="MyGame.cs" />
     <Compile Include="GXPEngine\Core\Canvas.cs" />
     <Compile Include="GXPEngine\Game.cs" />
@@ -103,6 +109,7 @@
     <Compile Include="Player.cs" />
     <Compile Include="PlayerData.cs" />
     <Compile Include="SolidBlock.cs" />
+    <Compile Include="TeleportingTile.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

@@ -17,15 +17,16 @@ namespace GXPEngine
         public Level(int index) : base("MapEmpty.png", false, false)
         {
             Map levelData = MapParser.ReadMap("Level " + index + ".tmx");
-            SpawnTiles(levelData);
             SpawnObjects(levelData);
+            SpawnTiles(levelData);
             camera = new Camera(0, 0, game.width, game.height);
-            camera.SetScaleXY(1.5f, 1.5f);
+            //camera.SetScaleXY(1.5f, 1.5f);
             camera.SetXY(player.position.x, player.position.y);
             game.AddChild(camera);
             player.camera = camera;
             levelIndex = index;
             SetScaleXY(1.1f, 1.1f);
+
             //HUD gets added last
             hud = new HUD();
             camera.AddChild(hud);
@@ -49,10 +50,6 @@ namespace GXPEngine
                     if (tileNumber > 0)
                     {
                         string tilesetFile = "NewTutorialTileset.png";
-                        if (levelIndex == 1)
-                        {
-                            tilesetFile = "TilesetPlaceholder.png";
-                        }                   
                         CollisionTile tile = new CollisionTile(tilesetFile, 3, 3);
                         tile.SetFrame(tileNumber - 1);
                         tile.x = col * tile.width;
@@ -73,8 +70,13 @@ namespace GXPEngine
             {
                 return;
             }
+            int wallPairIndex = 0;
+            bool pairIndexedWall = false;
+            int teleportTilePairIndex = 0;
+            bool pairIndexedTeleportTile = false;
             foreach (TiledObject obj in objectGroup.Objects)
             {
+
                 switch (obj.Name)
                 {
                     case "Player":
@@ -83,52 +85,74 @@ namespace GXPEngine
                         game.AddChild(player);
                         player.SetSpawnPoint();
                         break;
-                    //case "Finish":
-                    //    Finish finish = new Finish();
-                    //    finish.SetXY(obj.X, obj.Y);
-                    //    AddChild(finish);
-                    //    break;
+                    case "Finish":
+                        Finish finish = new Finish();
+                        finish.SetXY(obj.X, obj.Y);
+                        AddChild(finish);
+                        break;
+                    case "Collectable":
+                        CollectableStar star = new CollectableStar(obj.X, obj.Y);
+                        AddChild(star);
+                        break;
+                    case "MovableWall":
+                        ButtonWall wall = new ButtonWall(wallPairIndex, obj.X, obj.Y);
+                        if (!pairIndexedWall)
+                        {
+                            pairIndexedWall = true;
+                        }
+                        AddChild(wall);
+                        break;
+                    case "Button":
+                        ButtonObject button = new ButtonObject(wallPairIndex, obj.X, obj.Y, obj.Rotation);
+                        if (pairIndexedWall)
+                        {
+                            wallPairIndex++;
+                            pairIndexedWall = false;
+                        }
+                        AddChild(button);
+                        break;
+                    case "MimicBox":
+                        MimicBox mimicBox = new MimicBox(obj.X, obj.Y);
+                        mimicBox.player = player;
+                        game.AddChild(mimicBox);
+                        break;
+                    case "FirePit":
+                        FireEmitter fireEmitter = new FireEmitter(obj.X, obj.Y, obj.Rotation);
+                        AddChild(fireEmitter);
+                        break;
+                    case "Teleport":
+                        TeleportingTile teleportTile = new TeleportingTile(teleportTilePairIndex, obj.X, obj.Y);
+                        if (levelIndex >= 2)
+                        {
+                            teleportTile.shouldTeleportPlayer = true;
+                        }
+                        if (pairIndexedTeleportTile)
+                        {
+                            teleportTilePairIndex++;
+                            pairIndexedTeleportTile = false;
+                        }
+                        else
+                        {
+                            teleportTile.isThisTheFirstTile = true;
+                            pairIndexedTeleportTile = true;
+                        }                        
+                        AddChild(teleportTile);
+                        break;
                     default:
                         break;
                 }
-            }           
+            }
+            foreach (GameObject obj in GetChildren())
+            {
+                if (obj is ButtonObject)
+                {
+                    (obj as ButtonObject).CheckWallPair();
+                }
+                if (obj is TeleportingTile)
+                {
+                    (obj as TeleportingTile).CheckTeleportPair();
+                }
+            }
         }
-
-        //public void NewEnemies()
-        //{
-        //    Map levelData = MapParser.ReadMap("Level " + lvlNumber + ".tmx");
-
-        //    List<GameObject> children = GetChildren();
-        //    for (int i = 0; i < children.Count; i++)
-        //    {
-        //        //if (children[i] is Enemy)
-        //        //{
-        //        //    children[i].LateDestroy();
-        //        //}
-        //    }
-            
-        //    if (levelData.ObjectGroups == null || levelData.ObjectGroups.Length == 0)
-        //    {
-        //        return;
-        //    }
-        //    ObjectGroup objectGroup = levelData.ObjectGroups[0];
-        //    if (objectGroup.Objects == null || objectGroup.Objects.Length == 0)
-        //    {
-        //        return;
-        //    }
-
-        //    foreach (TiledObject obj in objectGroup.Objects)
-        //    {
-        //        //switch (obj.Name)
-        //        //{
-        //        //    case "EnemyTrigger":
-        //        //        Enemy enemy = new Enemy();
-        //        //        enemy.SetXY(obj.X, obj.Y);
-        //        //        AddChild(enemy);
-        //        //        enemy.Start();
-        //        //        break;
-        //        //}
-        //    }
-        //}
     }
 }

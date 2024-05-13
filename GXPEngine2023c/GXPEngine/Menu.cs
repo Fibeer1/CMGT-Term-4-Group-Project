@@ -25,14 +25,14 @@ namespace GXPEngine
         private void StartGameOver()
         {
             EasyDraw gameOverText = new EasyDraw(250, 75, false);
-            Button restartButton;
-            Button quitButton;
+            ButtonUI restartButton;
+            ButtonUI quitButton;
             gameOverText.TextSize(25);
             gameOverText.TextAlign(CenterMode.Center, CenterMode.Center);
             gameOverText.SetXY(game.width / 2 - gameOverText.width / 2, 50);
             gameOverText.Text("Game over!");
-            restartButton = new Button("Restart", game.width / 2 - 150 / 2, 425);
-            quitButton = new Button("Quit Game", game.width / 2 - 150 / 2, 500);
+            restartButton = new ButtonUI("Restart", game.width / 2 - 150 / 2, 425);
+            quitButton = new ButtonUI("Quit Game", game.width / 2 - 150 / 2, 500);
             AddChild(gameOverText);
             AddChild(restartButton);
             AddChild(quitButton);
@@ -42,8 +42,8 @@ namespace GXPEngine
         {
             EasyDraw title = new EasyDraw(400, 75, false);
             EasyDraw controls = new EasyDraw(360, 480, false);
-            Button startButton = new Button("Start Game", game.width / 2 - 150 / 2, 250);
-            Button quitButton = new Button("Quit Game", game.width / 2 - 150 / 2, 350);
+            ButtonUI startButton = new ButtonUI("Start Game", game.width / 2 - 150 / 2, 250);
+            ButtonUI quitButton = new ButtonUI("Quit Game", game.width / 2 - 150 / 2, 350);
             title.TextAlign(CenterMode.Center, CenterMode.Center);
             title.SetXY(game.width / 2 - title.width / 2, 50);
             title.TextSize(30);

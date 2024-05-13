@@ -25,7 +25,7 @@ public class Player : Sprite
     }
     private Vec2 velocity;
     private Vec2 _position;
-    private Vec2 acceleration;
+    public Vec2 acceleration;
     private float angularVelocity = 0;
     private float frictionCoefficient = 0.01f;
     private float _gravity = 0.1f;
@@ -36,31 +36,25 @@ public class Player : Sprite
     float inverseMass = 0.5f;
     float inverseMomentOfInertia = 0.01f;
 
-    //Color Indicator variables
-    private float[] colorIndicationRGB = new float[3];
-    private float colorIndicatorTimer = 0.1f;       
-    private bool showColorIndicator;
-
     //Mechanics variables
     private bool isCollidingWithBlock;
-    private string gravityDirection; //Can be Up, Right, Left, Down
+    public string gravityDirection; //Can be Up, Right, Left, Down
 
     //Other variables
     public Camera camera;
     private Vec2 spawnPosition;
     bool standingStill => velocity.x <= 1 && velocity.y <= 1 && velocity.x >= -1 && velocity.y >= -1;
 
-    public Player() : base("PowerupBox.png")
+    public Player() : base("Slime.png")
     {
         SetOrigin(width / 2, height / 2);
         maxHealth = healthPoints;
-        SetColor(0.75f, 0, 0);
         acceleration = new Vec2(0, _gravity);
         gravityDirection = "Down";
         ComputeMassInertia(1f);
     }
 
-    void ComputeMassInertia(float density)
+    private void ComputeMassInertia(float density)
     {
         float mass = width * height * density;
         float inertia = mass * (width * width + height * height) / 12;
@@ -76,7 +70,6 @@ public class Player : Sprite
             HandleMovement();
             HandleCameraMovement();
             HandleCollisions();
-            HandleColorIndication();
         }
         else
         {
@@ -149,7 +142,12 @@ public class Player : Sprite
         // Check collisions at intermediate position
         GameObject detectedCollision = CheckCollisionsAt(intermediatePosition);
         
-        if (detectedCollision != null)
+        if (detectedCollision != null && 
+            !(detectedCollision is CollectableStar) && 
+            !(detectedCollision is ObjectDeathEffect) &&
+            !(detectedCollision is FireEmitter) &&
+            !(detectedCollision is TeleportingTile) &&
+            !(detectedCollision is FireParticle))
         {
             isCollidingWithBlock = true;
             ResolveCollision(detectedCollision);
@@ -161,13 +159,40 @@ public class Player : Sprite
         // Resolve collisions
         foreach (GameObject other in overlaps)
         {
-            if (other != this)
+            if (other != this && !(other is CollectableStar) && 
+                !(other is ObjectDeathEffect) &&
+                !(other is FireEmitter) &&
+                !(other is TeleportingTile) &&
+                !(other is FireParticle))
             {
                 isCollidingWithBlock = true;
                 ResolveCollision(other);
             }
-        }        
-
+            if (other is CollectableStar)
+            {
+                (other as CollectableStar).CollectStar();
+            }
+            if (other is ButtonObject && (other as ButtonObject).pushDirection == gravityDirection && !(other as ButtonObject).isPushing)
+            {
+                (other as ButtonObject).isPushing = true;
+            }
+            if (other is Finish)
+            {
+                MyGame mainGame = (MyGame)game;
+                if (mainGame.currentLevelIndex++ == 3)
+                {
+                    mainGame.StartMenu("Win Screen");
+                }
+                else
+                {
+                    mainGame.StartLevel(mainGame.currentLevelIndex++);
+                }
+            }
+            if (other is FireParticle)
+            {
+                SetScaleXY(scaleX - 0.1f, scaleY - 0.1f);
+            }
+        }
         UpdateScreenPosition();
     }
 
@@ -256,51 +281,6 @@ public class Player : Sprite
 
         velocity += (impulse + friction) * inverseMass;
         angularVelocity += r1perp.Dot(normal) * impulseMagnitude * inverseMomentOfInertia;
-    }
-
-    private void PickupHealth(GameObject healthBox)
-    {
-        healthPoints += healthTaken;
-        showColorIndicator = true;
-        colorIndicationRGB[0] = 0;
-        colorIndicationRGB[1] = 0.75f;
-        colorIndicationRGB[2] = 0;
-        if (healthPoints > maxHealth)
-        {
-            healthPoints = maxHealth;
-        }
-        healthBox.LateDestroy();
-    }
-
-    private void POIResolveCollision()
-    {
-        float oldDistance = (position - (position - velocity)).Length();
-        float newDistance = (position - (position + velocity)).Length();
-        float timeOfImpact = oldDistance / newDistance;
-
-        // Calculate point of impact
-        Vec2 pointOfImpact = position - timeOfImpact * velocity;
-        _position = pointOfImpact;
-    }
-
-    private void HandleColorIndication()
-    {
-        //The player changes color for a part of a second when taking damage or being healed
-        if (showColorIndicator)
-        {
-            SetColor(colorIndicationRGB[0], colorIndicationRGB[1], colorIndicationRGB[2]);
-            if (healthPoints <= 0)
-            {
-                isDead = true;
-            }
-            colorIndicatorTimer -= 0.01f;
-            if (colorIndicatorTimer <= 0)
-            {
-                SetColor(0.75f, 0, 0);
-                colorIndicatorTimer = 0.1f;
-                showColorIndicator = false;
-            }
-        }
     }
     public void SetSpawnPoint()
     {

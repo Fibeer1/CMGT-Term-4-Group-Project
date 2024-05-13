@@ -7,15 +7,14 @@ using System.Linq;
 public class MyGame : Game 
 {
 	Player player;
-	HUD hud;
 	SoundChannel audioSource;
-	Level level;
-	LineSegment[] mapBorders = new LineSegment[8];
 	public Sprite[] staticBlocks;
+	public int currentLevelIndex = 0;
 
 	public MyGame() : base(1280, 720, false, false)     // Create a window that's 1280x720 and NOT fullscreen
 	{
 		targetFps = 60;
+		currentLevelIndex = 1;
 		Menu menu = new Menu("Main Menu");
 		AddChild(menu);
 		HandleUnitTests();
@@ -71,6 +70,7 @@ public class MyGame : Game
 	public void StartLevel(int levelIndex)
 	{
 		DestroyChildren();
+		currentLevelIndex = levelIndex;
 		Level level = new Level(levelIndex);
 		AddChild(level);
 	}
