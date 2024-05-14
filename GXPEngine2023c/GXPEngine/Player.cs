@@ -39,6 +39,10 @@ public class Player : Sprite
     //Mechanics variables
     private bool isCollidingWithBlock;
     public string gravityDirection; //Can be Up, Right, Left, Down
+    private float teleportCD;
+    private float teleportCDDuration = 1;
+    private float fireCD;
+    private float fireCDDuration = 1;
 
     //Other variables
     public Camera camera;
@@ -66,6 +70,8 @@ public class Player : Sprite
     {
         if (!isDead)
         {
+            HandleTeleportCD();
+            HandleFireCD();
             HandleGravityDirection();
             HandleMovement();
             HandleCameraMovement();
@@ -74,6 +80,22 @@ public class Player : Sprite
         else
         {
             HandleDying();
+        }
+    }
+
+    private void HandleTeleportCD()
+    {
+        if (teleportCD > 0)
+        {
+            teleportCD -= 0.0175f;
+        }
+    }
+
+    private void HandleFireCD()
+    {
+        if (fireCD > 0)
+        {
+            fireCD -= 0.0175f;
         }
     }
 
@@ -188,9 +210,16 @@ public class Player : Sprite
                     mainGame.StartLevel(mainGame.currentLevelIndex++);
                 }
             }
-            if (other is FireParticle)
+            if (other is FireParticle && fireCD <= 0)
             {
                 SetScaleXY(scaleX - 0.1f, scaleY - 0.1f);
+                fireCD = fireCDDuration;
+
+            }
+            if (other is TeleportingTile && teleportCD <= 0 && (other as TeleportingTile).shouldTeleportPlayer)
+            {
+                _position = (other as TeleportingTile).pairTile.position;
+                teleportCD = teleportCDDuration;
             }
         }
         UpdateScreenPosition();
@@ -253,7 +282,7 @@ public class Player : Sprite
         Vec2 pointVelocity = velocity + r1perp * angularVelocity;
 
         float impulseMagnitude =
-            -(1 + bounciness) * (pointVelocity.Dot(normal)) /
+            -pointVelocity.Dot(normal) /
             (
                 normal.Dot(normal) * inverseMass +
                 r1perp.Dot(normal) * r1perp.Dot(normal) * inverseMomentOfInertia

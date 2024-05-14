@@ -12,6 +12,7 @@ namespace GXPEngine
         public Finish() : base("LevelPortal.png", false, true)
         {
             SetOrigin(width / 2, height / 2);
+            SetScaleXY(1.5f, 1.5f);
         }
     }
 }
