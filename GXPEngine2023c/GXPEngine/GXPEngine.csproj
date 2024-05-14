@@ -42,6 +42,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ButtonObject.cs" />
+    <Compile Include="ButtonPlatform.cs" />
     <Compile Include="ButtonUI.cs" />
     <Compile Include="ButtonWall.cs" />
     <Compile Include="CollectableStar.cs" />

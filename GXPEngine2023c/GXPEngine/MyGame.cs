@@ -14,51 +14,10 @@ public class MyGame : Game
 	public MyGame() : base(1280, 720, false, false)     // Create a window that's 1280x720 and NOT fullscreen
 	{
 		targetFps = 60;
-		currentLevelIndex = 0;
+		currentLevelIndex = 1;
 		Menu menu = new Menu("Main Menu");
 		AddChild(menu);
 		HandleUnitTests();
-	}
-	public void TestLevel()
-    {
-		SpawnBlocks();
-		player = new Player();
-		player.SetPosition(new Vec2(Utils.Random(0, width), 0));
-		game.AddChild(player);
-		player.SetSpawnPoint();
-	}
-
-	void SpawnBlocks(int number = 50, int seed = 0, float staticBlockScaleX = 1, float staticBlockScaleY = 1)
-	{
-		List<Sprite> blocks = new List<Sprite>();
-
-		Random rnd = new Random(seed); // fixed seed
-		for (int i = 0; i < number; i++)
-		{
-			// Create a sprite with random position, rotation and scale:
-			Sprite staticBlock = new Sprite("HealthPickup.png");
-			staticBlock.SetOrigin(staticBlock.width / 2, staticBlock.height / 2);
-			staticBlock.rotation = rnd.Next(0, 180);
-			staticBlock.x = rnd.Next(0, width);
-			staticBlock.y = rnd.Next(0, height);
-			staticBlock.scaleX = ((float)rnd.NextDouble() * 2 + 0.5f) * staticBlockScaleX;
-			staticBlock.scaleY = ((float)rnd.NextDouble() * 2 + 0.5f) * staticBlockScaleY;
-			AddChild(staticBlock);
-			blocks.Add(staticBlock);
-		}
-
-		Sprite leftWall = new Sprite("HealthPickup.png");
-		leftWall.scaleY = 2 * height / leftWall.height;
-		AddChild(leftWall);
-		blocks.Add(leftWall);
-
-		Sprite rightWall = new Sprite("HealthPickup.png");
-		rightWall.scaleY = 2 * height / rightWall.height;
-		rightWall.x = width - rightWall.width;
-		AddChild(rightWall);
-		blocks.Add(rightWall);
-
-		staticBlocks = blocks.ToArray();
 	}
 
 	public void StartMenu(string menuType)
@@ -96,26 +55,6 @@ public class MyGame : Game
 		}		
 		AddChild(menu);
 	}
-
-	//private void AddMapBorders()
- //   {
-	//	mapBorders[0] = new NLineSegment(new Vec2(25, 25), new Vec2(game.width / 2, 3), 0xff00ff00, 3);
-	//	mapBorders[1] = new NLineSegment(new Vec2(game.width / 2, 3), new Vec2(game.width - 25, 25), 0xff00ff00, 3);
-	//	mapBorders[2] = new NLineSegment(new Vec2(game.width - 25, 25), new Vec2(game.width - 3, game.height / 2), 0xff00ff00, 3);
-	//	mapBorders[3] = new NLineSegment(new Vec2(game.width - 3, game.height / 2), new Vec2(game.width - 25, game.height - 25), 0xff00ff00, 3);
-	//	mapBorders[4] = new NLineSegment(new Vec2(game.width - 25, game.height - 25), new Vec2(game.width / 2, game.height - 3), 0xff00ff00, 3);
-	//	mapBorders[5] = new NLineSegment(new Vec2(game.width / 2, game.height - 3), new Vec2(25, game.height - 25), 0xff00ff00, 3);
-	//	mapBorders[6] = new NLineSegment(new Vec2(25, game.height - 25), new Vec2(3, game.height / 2), 0xff00ff00, 3);
-	//	mapBorders[7] = new NLineSegment(new Vec2(3, game.height / 2), new Vec2(25, 25), 0xff00ff00, 3);
-	//	AddChild(mapBorders[0]);
-	//	AddChild(mapBorders[1]);
-	//	AddChild(mapBorders[2]);
-	//	AddChild(mapBorders[3]);
-	//	AddChild(mapBorders[4]);
-	//	AddChild(mapBorders[5]);
-	//	AddChild(mapBorders[6]);
-	//	AddChild(mapBorders[7]);
-	//}
 
 	private void HandleUnitTests()
     {

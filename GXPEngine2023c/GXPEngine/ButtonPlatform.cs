@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace GXPEngine
 {
-    class ButtonWall : Sprite
+    class ButtonPlatform : Sprite
     {
         public Vec2 position;
         public int buttonPairIndex;
-        public ButtonWall(int pairIndex, float xPos, float yPos, float pRotation) : base("MovableWall3.png")
+        public ButtonPlatform(int pairIndex, float xPos, float yPos, float pRotation) : base("MovingPlatform.png")
         {
             buttonPairIndex = pairIndex;
             position = new Vec2(xPos, yPos);

@@ -9,8 +9,10 @@ namespace GXPEngine
     class ButtonObject : Sprite
     {
         private Vec2 _position;
-        private int wallPairIndex;
+        private int objectPairIndex;
+        private string type;
         private ButtonWall wallPair;
+        private ButtonPlatform platformPair;
         public string pushDirection; //Can be Up, Right, Left, Down
         private bool shouldPushButton = true;
         public bool isPushing = false;
@@ -18,12 +20,14 @@ namespace GXPEngine
         private float wallMoveTimer = 1f;
         private Vec2 buttonPositionToLerp;
         private Vec2 wallPositionToLerp;
-        public ButtonObject(int pairIndex, float xPos, float yPos, float pRotation) : base("Button.png")
+        private Vec2 platformPositionToLerp;
+        public ButtonObject(string pType, int pairIndex, float xPos, float yPos, float pRotation) : base("Button.png")
         {
             SetOrigin(width / 2, height / 2);
-            _position = new Vec2(xPos, yPos);
-            wallPairIndex = pairIndex;
+            _position = new Vec2(xPos, yPos);            
             rotation = pRotation;
+            objectPairIndex = pairIndex;
+            type = pType;
             buttonPositionToLerp = _position + Vec2.GetUnitVectorDeg(rotation + 90) * 10;
             if (rotation == 180)
             {
@@ -79,12 +83,26 @@ namespace GXPEngine
             List<GameObject> parentChildren = parent.GetChildren();
             foreach (GameObject gameObject in parentChildren)
             {
-                if (gameObject is ButtonWall)
+                if (type == "Wall")
                 {
-                    if ((gameObject as ButtonWall).wallPairIndex == wallPairIndex)
+                    if (gameObject is ButtonWall)
                     {
-                        wallPair = gameObject as ButtonWall;
-                        wallPositionToLerp = wallPair.position + Vec2.GetUnitVectorDeg(wallPair.rotation + 90) * 100;
+                        if ((gameObject as ButtonWall).buttonPairIndex == objectPairIndex)
+                        {
+                            wallPair = gameObject as ButtonWall;
+                            wallPositionToLerp = wallPair.position + Vec2.GetUnitVectorDeg(wallPair.rotation + 90) * 100;
+                        }
+                    }
+                }
+                else if (type == "Platform")
+                {
+                    if (gameObject is ButtonPlatform)
+                    {
+                        if ((gameObject as ButtonPlatform).buttonPairIndex == objectPairIndex)
+                        {
+                            platformPair = gameObject as ButtonPlatform;
+                            platformPositionToLerp = platformPair.position + Vec2.GetUnitVectorDeg(platformPair.rotation) * 100;
+                        }
                     }
                 }
             }

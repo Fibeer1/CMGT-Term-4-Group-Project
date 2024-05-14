@@ -71,6 +71,8 @@ namespace GXPEngine
             }
             int wallPairIndex = 0;
             bool pairIndexedWall = false;
+            int platformPairIndex = 0;
+            bool pairIndexedPlatform = false;
             int teleportTilePairIndex = 0;
             bool pairIndexedTeleportTile = false;
             foreach (TiledObject obj in objectGroup.Objects)
@@ -101,8 +103,8 @@ namespace GXPEngine
                         }
                         AddChild(wall);
                         break;
-                    case "Button":
-                        ButtonObject button = new ButtonObject(wallPairIndex, obj.X, obj.Y, obj.Rotation);
+                    case "WallButton":
+                        ButtonObject button = new ButtonObject("Wall", wallPairIndex, obj.X, obj.Y, obj.Rotation);
                         if (pairIndexedWall)
                         {
                             wallPairIndex++;
@@ -136,6 +138,22 @@ namespace GXPEngine
                             pairIndexedTeleportTile = true;
                         }                        
                         AddChild(teleportTile);
+                        break;
+                    case "Platform":
+                        ButtonPlatform platform = new ButtonPlatform(platformPairIndex, obj.X, obj.Y, obj.Rotation);
+                        if (!pairIndexedPlatform)
+                        {
+                            pairIndexedPlatform = true;
+                        }
+                        break;
+                    case "PlatformButton":
+                        ButtonObject platformButton = new ButtonObject("Platform", platformPairIndex, obj.X, obj.Y, obj.Rotation);
+                        if (pairIndexedPlatform)
+                        {
+                            platformPairIndex++;
+                            pairIndexedPlatform = false;
+                        }
+                        AddChild(platformButton);
                         break;
                     default:
                         break;

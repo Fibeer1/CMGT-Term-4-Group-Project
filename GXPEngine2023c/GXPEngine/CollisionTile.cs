@@ -8,6 +8,7 @@ namespace GXPEngine
 {
     class CollisionTile : AnimationSprite
     {
+        public bool shouldCollide = true;
         public CollisionTile(string filename, int cols, int rows) : base (filename, cols, rows)
         {
 
