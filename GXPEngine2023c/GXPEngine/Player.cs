@@ -47,15 +47,18 @@ public class Player : Sprite
     //Other variables
     public Camera camera;
     private Vec2 spawnPosition;
+    private Vec2 normalSize;
     bool standingStill => velocity.x <= 1 && velocity.y <= 1 && velocity.x >= -1 && velocity.y >= -1;
 
     public Player() : base("Slime.png")
     {
         SetOrigin(width / 2, height / 2);
         maxHealth = healthPoints;
+        SetScaleXY(0.5f, 0.5f);
         acceleration = new Vec2(0, _gravity);
         gravityDirection = "Down";
-        ComputeMassInertia(1f);
+        ComputeMassInertia(1);
+        normalSize = new Vec2(scaleX, scaleY);
     }
 
     private void ComputeMassInertia(float density)
@@ -70,6 +73,7 @@ public class Player : Sprite
     {
         if (!isDead)
         {
+            //HandleResizing();
             HandleTeleportCD();
             HandleFireCD();
             HandleGravityDirection();
@@ -81,6 +85,13 @@ public class Player : Sprite
         {
             HandleDying();
         }
+    }
+
+    private void HandleResizing()
+    {
+        Vec2 currentSize = new Vec2(scaleX, scaleY);
+        Vec2 desiredSize = Vec2.Lerp(currentSize, normalSize, 0.125f);
+        SetScaleXY(desiredSize.x, desiredSize.y);
     }
 
     private void HandleTeleportCD()
@@ -188,6 +199,11 @@ public class Player : Sprite
             if (other is ButtonObject && !(other as ButtonObject).isPushing)
             {
                 (other as ButtonObject).isPushing = true;
+                if ((other as ButtonObject).platformPair != null)
+                {
+                    (other as ButtonObject).platformPair.shouldMove = true;
+                }
+                
             }
             if (other is Finish)
             {
@@ -203,7 +219,10 @@ public class Player : Sprite
             }
             if (other is FireParticle && fireCD <= 0)
             {
-                SetScaleXY(scaleX - 0.1f, scaleY - 0.1f);
+                Vec2 reducedSize = new Vec2(scaleX - 0.1f, scaleY - 0.1f);
+                normalSize = reducedSize;
+                SetScaleXY(reducedSize.x, reducedSize.y);
+
                 fireCD = fireCDDuration;
 
             }
@@ -258,7 +277,7 @@ public class Player : Sprite
                 (other is FireParticle))
         {
             return;
-        }
+        }        
 
         // A GXPEngine method for finding all kinds of useful info about collisions (=overlaps):
         Collision colInfo = collider.GetCollisionInfo(other.collider);
@@ -282,7 +301,7 @@ public class Player : Sprite
         Vec2 pointVelocity = velocity + r1perp * angularVelocity;
 
         float impulseMagnitude =
-            -pointVelocity.Dot(normal) /
+            -(1 + bounciness) * pointVelocity.Dot(normal) /
             (
                 normal.Dot(normal) * inverseMass +
                 r1perp.Dot(normal) * r1perp.Dot(normal) * inverseMomentOfInertia
@@ -304,12 +323,28 @@ public class Player : Sprite
 
         // Dampen linear and angular velocities upon collision
         float linearDamping = 0.5f;
-        float angularDamping = 0.5f;
+        float angularDamping = 0.25f;
         velocity *= linearDamping;
         angularVelocity *= angularDamping;
 
         velocity += (impulse + friction) * inverseMass;
         angularVelocity += r1perp.Dot(normal) * impulseMagnitude * inverseMomentOfInertia;
+
+        //Try doing this tomorrow
+        //SquishPlayer();
+    }
+
+    private void SquishPlayer()
+    {
+        normalSize = new Vec2(scaleX, scaleY);
+        if (gravityDirection == "Down" || gravityDirection == "Up")
+        {
+            SetScaleXY(scaleX, scaleY / velocity.x);
+        }
+        else
+        {
+            SetScaleXY(scaleX / velocity.y, scaleY);
+        }
     }
     public void SetSpawnPoint()
     {

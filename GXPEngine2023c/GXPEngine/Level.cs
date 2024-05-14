@@ -48,7 +48,7 @@ namespace GXPEngine
                     int tileNumber = tileNumbers[col, row];
                     if (tileNumber > 0)
                     {
-                        string tilesetFile = "NewTutorialTileset.png";
+                        string tilesetFile = "DefaultTiles.png";
                         CollisionTile tile = new CollisionTile(tilesetFile, 3, 3);
                         tile.SetFrame(tileNumber - 1);
                         tile.x = col * tile.width;
@@ -69,15 +69,9 @@ namespace GXPEngine
             {
                 return;
             }
-            int wallPairIndex = 0;
-            bool pairIndexedWall = false;
-            int platformPairIndex = 0;
-            bool pairIndexedPlatform = false;
-            int teleportTilePairIndex = 0;
-            bool pairIndexedTeleportTile = false;
             foreach (TiledObject obj in objectGroup.Objects)
             {
-
+                bool pairIndexedTeleportTile = false;
                 switch (obj.Name)
                 {
                     case "Player":
@@ -96,20 +90,11 @@ namespace GXPEngine
                         AddChild(star);
                         break;
                     case "MovableWall":
-                        ButtonWall wall = new ButtonWall(wallPairIndex, obj.X, obj.Y, obj.Rotation);
-                        if (!pairIndexedWall)
-                        {
-                            pairIndexedWall = true;
-                        }
+                        ButtonWall wall = new ButtonWall(obj.GetIntProperty("PairIndex"), obj.X, obj.Y, obj.Rotation);
                         AddChild(wall);
                         break;
                     case "WallButton":
-                        ButtonObject button = new ButtonObject("Wall", wallPairIndex, obj.X, obj.Y, obj.Rotation);
-                        if (pairIndexedWall)
-                        {
-                            wallPairIndex++;
-                            pairIndexedWall = false;
-                        }
+                        ButtonObject button = new ButtonObject("Wall", obj.GetIntProperty("PairIndex"), obj.X, obj.Y, obj.Rotation);
                         AddChild(button);
                         break;
                     case "MimicBox":
@@ -122,37 +107,32 @@ namespace GXPEngine
                         AddChild(fireEmitter);
                         break;
                     case "Teleport":
-                        TeleportingTile teleportTile = new TeleportingTile(teleportTilePairIndex, obj.X, obj.Y);
+                        TeleportingTile teleportTile = new TeleportingTile(obj.GetIntProperty("PairIndex"), obj.X, obj.Y);
+                        if (levelIndex >= 2)
+                        {
+                            teleportTile.shouldTeleportPlayer = true;
+                        }
                         if (levelIndex >= 2)
                         {
                             teleportTile.shouldTeleportPlayer = true;
                         }
                         if (pairIndexedTeleportTile)
                         {
-                            teleportTilePairIndex++;
                             pairIndexedTeleportTile = false;
                         }
                         else
                         {
                             teleportTile.isThisTheFirstTile = true;
                             pairIndexedTeleportTile = true;
-                        }                        
+                        }
                         AddChild(teleportTile);
                         break;
                     case "Platform":
-                        ButtonPlatform platform = new ButtonPlatform(platformPairIndex, obj.X, obj.Y, obj.Rotation);
-                        if (!pairIndexedPlatform)
-                        {
-                            pairIndexedPlatform = true;
-                        }
+                        ButtonPlatform platform = new ButtonPlatform(obj.GetIntProperty("PairIndex"), obj.X, obj.Y, obj.Rotation);
+                        AddChild(platform);
                         break;
                     case "PlatformButton":
-                        ButtonObject platformButton = new ButtonObject("Platform", platformPairIndex, obj.X, obj.Y, obj.Rotation);
-                        if (pairIndexedPlatform)
-                        {
-                            platformPairIndex++;
-                            pairIndexedPlatform = false;
-                        }
+                        ButtonObject platformButton = new ButtonObject("Platform", obj.GetIntProperty("PairIndex"), obj.X, obj.Y, obj.Rotation);
                         AddChild(platformButton);
                         break;
                     default:

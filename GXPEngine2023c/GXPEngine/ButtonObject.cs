@@ -12,15 +12,14 @@ namespace GXPEngine
         private int objectPairIndex;
         private string type;
         private ButtonWall wallPair;
-        private ButtonPlatform platformPair;
+        public ButtonPlatform platformPair;
         public string pushDirection; //Can be Up, Right, Left, Down
         private bool shouldPushButton = true;
         public bool isPushing = false;
         private float buttonMoveTimer = 0.5f;
-        private float wallMoveTimer = 1f;
+        private float pairObjectMoveTimer = 1f;
         private Vec2 buttonPositionToLerp;
         private Vec2 wallPositionToLerp;
-        private Vec2 platformPositionToLerp;
         public ButtonObject(string pType, int pairIndex, float xPos, float yPos, float pRotation) : base("Button.png")
         {
             SetOrigin(width / 2, height / 2);
@@ -67,12 +66,16 @@ namespace GXPEngine
                 {
                     _position = Vec2.Lerp(_position, buttonPositionToLerp, 0.125f);
                 }
-                wallPair.position = Vec2.Lerp(wallPair.position, wallPositionToLerp, 0.125f);
+
+                if (type == "Wall")
+                {
+                    wallPair.position = Vec2.Lerp(wallPair.position, wallPositionToLerp, 0.125f);
+                }
 
                 buttonMoveTimer -= 0.0175f;
-                wallMoveTimer -= 0.0175f;
+                pairObjectMoveTimer -= 0.0175f;
 
-                if (buttonMoveTimer < 0 && wallMoveTimer < 0)
+                if (buttonMoveTimer < 0 && pairObjectMoveTimer < 0)
                 {
                     shouldPushButton = false;
                 }
@@ -97,11 +100,10 @@ namespace GXPEngine
                 else if (type == "Platform")
                 {
                     if (gameObject is ButtonPlatform)
-                    {
+                    {                        
                         if ((gameObject as ButtonPlatform).buttonPairIndex == objectPairIndex)
                         {
                             platformPair = gameObject as ButtonPlatform;
-                            platformPositionToLerp = platformPair.position + Vec2.GetUnitVectorDeg(platformPair.rotation) * 100;
                         }
                     }
                 }

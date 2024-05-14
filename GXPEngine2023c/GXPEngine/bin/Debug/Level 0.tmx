@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="50" height="32" tilewidth="32" tileheight="32" infinite="0" nextlayerid="3" nextobjectid="10">
- <tileset firstgid="1" source="NewTutorialTileset.tsx"/>
- <tileset firstgid="10" source="../../../../../../../Tiled/Tiles/8-bit City_1920x1080.tsx"/>
+ <tileset firstgid="1" source="DefaultTileset.tsx"/>
  <layer id="1" name="Tile Layer 1" width="50" height="32">
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
