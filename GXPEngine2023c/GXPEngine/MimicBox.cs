@@ -116,12 +116,7 @@ namespace GXPEngine
             // Check collisions at intermediate position
             GameObject detectedCollision = CheckCollisionsAt(intermediatePosition);
 
-            if (detectedCollision != null &&
-                !(detectedCollision is CollectableStar) &&
-                !(detectedCollision is ObjectDeathEffect) &&
-                !(detectedCollision is FireEmitter) &&
-                !(detectedCollision is TeleportingTile) &&
-                !(detectedCollision is FireParticle))
+            if (detectedCollision != null)
             {
                 ResolveCollision(detectedCollision);
             }
@@ -132,12 +127,7 @@ namespace GXPEngine
             // Resolve collisions
             foreach (GameObject other in overlaps)
             {
-                if (other != this &&
-                !(other is CollectableStar) &&
-                !(other is ObjectDeathEffect) &&
-                !(other is FireEmitter) &&
-                !(other is TeleportingTile) &&
-                !(other is FireParticle))
+                if (other != this)
                 {
                     ResolveCollision(other);
                 }
@@ -145,7 +135,7 @@ namespace GXPEngine
                 {
                     (other as CollectableStar).CollectStar();
                 }
-                if (other is ButtonObject && (other as ButtonObject).pushDirection == gravityDirection && !(other as ButtonObject).isPushing)
+                if (other is ButtonObject && !(other as ButtonObject).isPushing)
                 {
                     (other as ButtonObject).isPushing = true;
                 }
@@ -190,6 +180,15 @@ namespace GXPEngine
 
         private void ResolveCollision(GameObject other)
         {
+            if ((other is CollectableStar) ||
+                (other is ObjectDeathEffect) ||
+                (other is FireEmitter) ||
+                (other is TeleportingTile) ||
+                (other is FireParticle))
+            {
+                return;
+            }
+
             // A GXPEngine method for finding all kinds of useful info about collisions (=overlaps):
             Collision colInfo = collider.GetCollisionInfo(other.collider);
 

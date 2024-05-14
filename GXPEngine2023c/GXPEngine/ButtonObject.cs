@@ -84,7 +84,7 @@ namespace GXPEngine
                     if ((gameObject as ButtonWall).wallPairIndex == wallPairIndex)
                     {
                         wallPair = gameObject as ButtonWall;
-                        wallPositionToLerp = wallPair.position + new Vec2(0, 100);
+                        wallPositionToLerp = wallPair.position + Vec2.GetUnitVectorDeg(wallPair.rotation + 90) * 100;
                     }
                 }
             }

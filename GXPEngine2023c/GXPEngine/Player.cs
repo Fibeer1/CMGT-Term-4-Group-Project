@@ -164,12 +164,7 @@ public class Player : Sprite
         // Check collisions at intermediate position
         GameObject detectedCollision = CheckCollisionsAt(intermediatePosition);
         
-        if (detectedCollision != null && 
-            !(detectedCollision is CollectableStar) && 
-            !(detectedCollision is ObjectDeathEffect) &&
-            !(detectedCollision is FireEmitter) &&
-            !(detectedCollision is TeleportingTile) &&
-            !(detectedCollision is FireParticle))
+        if (detectedCollision != null)
         {
             isCollidingWithBlock = true;
             ResolveCollision(detectedCollision);
@@ -181,11 +176,7 @@ public class Player : Sprite
         // Resolve collisions
         foreach (GameObject other in overlaps)
         {
-            if (other != this && !(other is CollectableStar) && 
-                !(other is ObjectDeathEffect) &&
-                !(other is FireEmitter) &&
-                !(other is TeleportingTile) &&
-                !(other is FireParticle))
+            if (other != this)
             {
                 isCollidingWithBlock = true;
                 ResolveCollision(other);
@@ -194,7 +185,7 @@ public class Player : Sprite
             {
                 (other as CollectableStar).CollectStar();
             }
-            if (other is ButtonObject && (other as ButtonObject).pushDirection == gravityDirection && !(other as ButtonObject).isPushing)
+            if (other is ButtonObject && !(other as ButtonObject).isPushing)
             {
                 (other as ButtonObject).isPushing = true;
             }
@@ -260,6 +251,15 @@ public class Player : Sprite
 
     private void ResolveCollision(GameObject other)
     {
+        if ((other is CollectableStar) ||
+                (other is ObjectDeathEffect) ||
+                (other is FireEmitter) ||
+                (other is TeleportingTile) ||
+                (other is FireParticle))
+        {
+            return;
+        }
+
         // A GXPEngine method for finding all kinds of useful info about collisions (=overlaps):
         Collision colInfo = collider.GetCollisionInfo(other.collider);
 

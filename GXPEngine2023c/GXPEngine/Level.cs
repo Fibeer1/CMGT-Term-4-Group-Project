@@ -20,7 +20,6 @@ namespace GXPEngine
             SpawnObjects(levelData);
             SpawnTiles(levelData);
             camera = new Camera(0, 0, game.width, game.height);
-            //camera.SetScaleXY(1.5f, 1.5f);
             camera.SetXY(player.position.x, player.position.y);
             game.AddChild(camera);
             player.camera = camera;
@@ -95,7 +94,7 @@ namespace GXPEngine
                         AddChild(star);
                         break;
                     case "MovableWall":
-                        ButtonWall wall = new ButtonWall(wallPairIndex, obj.X, obj.Y);
+                        ButtonWall wall = new ButtonWall(wallPairIndex, obj.X, obj.Y, obj.Rotation);
                         if (!pairIndexedWall)
                         {
                             pairIndexedWall = true;
