@@ -45,7 +45,7 @@
     <Compile Include="ButtonPlatform.cs" />
     <Compile Include="ButtonUI.cs" />
     <Compile Include="ButtonWall.cs" />
-    <Compile Include="CollectableStar.cs" />
+    <Compile Include="Collectable.cs" />
     <Compile Include="CollisionTile.cs" />
     <Compile Include="Finish.cs" />
     <Compile Include="FireEmitter.cs" />

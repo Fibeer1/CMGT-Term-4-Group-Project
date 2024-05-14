@@ -131,9 +131,9 @@ namespace GXPEngine
                 {
                     ResolveCollision(other);
                 }
-                if (other is CollectableStar)
+                if (other is Collectable)
                 {
-                    (other as CollectableStar).CollectStar();
+                    (other as Collectable).CollectBlob();
                 }
                 if (other is ButtonObject && !(other as ButtonObject).isPushing)
                 {
@@ -180,7 +180,7 @@ namespace GXPEngine
 
         private void ResolveCollision(GameObject other)
         {
-            if ((other is CollectableStar) ||
+            if ((other is Collectable) ||
                 (other is ObjectDeathEffect) ||
                 (other is FireEmitter) ||
                 (other is TeleportingTile) ||

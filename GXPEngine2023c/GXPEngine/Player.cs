@@ -192,9 +192,9 @@ public class Player : Sprite
                 isCollidingWithBlock = true;
                 ResolveCollision(other);
             }
-            if (other is CollectableStar)
+            if (other is Collectable)
             {
-                (other as CollectableStar).CollectStar();
+                (other as Collectable).CollectBlob();
             }
             if (other is ButtonObject && !(other as ButtonObject).isPushing)
             {
@@ -270,7 +270,7 @@ public class Player : Sprite
 
     private void ResolveCollision(GameObject other)
     {
-        if ((other is CollectableStar) ||
+        if ((other is Collectable) ||
                 (other is ObjectDeathEffect) ||
                 (other is FireEmitter) ||
                 (other is TeleportingTile) ||

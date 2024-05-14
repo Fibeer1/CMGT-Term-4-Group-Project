@@ -86,8 +86,8 @@ namespace GXPEngine
                         AddChild(finish);
                         break;
                     case "Collectable":
-                        CollectableStar star = new CollectableStar(obj.X, obj.Y);
-                        AddChild(star);
+                        Collectable collectable = new Collectable(obj.X, obj.Y);
+                        AddChild(collectable);
                         break;
                     case "MovableWall":
                         ButtonWall wall = new ButtonWall(obj.GetIntProperty("PairIndex"), obj.X, obj.Y, obj.Rotation);

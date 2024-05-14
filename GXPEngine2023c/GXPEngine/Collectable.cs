@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace GXPEngine
 {
-    class CollectableStar : Sprite
+    class Collectable : AnimationSprite
     {
         private Vec2 _position;
-        public CollectableStar(float xPos, float yPos) : base("CollectableStar.png")
+        public Collectable(float xPos, float yPos) : base("Collectable.png", 6, 1)
         {
             SetOrigin(width / 2, height / 2);
             _position = new Vec2(xPos, yPos);           
@@ -22,7 +22,12 @@ namespace GXPEngine
             y = _position.y;
         }
 
-        public void CollectStar()
+        private void Update()
+        {
+            Animate(0.125f);
+        }
+
+        public void CollectBlob()
         {
             alpha = 0;
             ObjectDeathEffect deathEffect = new ObjectDeathEffect(_position, new Vec2(0,0));
