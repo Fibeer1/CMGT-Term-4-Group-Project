@@ -139,6 +139,10 @@ namespace GXPEngine
                 if (other is ButtonObject && !(other as ButtonObject).isPushing)
                 {
                     (other as ButtonObject).isPushing = true;
+                    if ((other as ButtonObject).platformPair != null)
+                    {
+                        (other as ButtonObject).platformPair.shouldMove = true;
+                    }
                 }
                 if (other is TeleportingTile && teleportCD <= 0)
                 {

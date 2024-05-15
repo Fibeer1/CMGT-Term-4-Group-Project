@@ -8,9 +8,6 @@ public class Player : Sprite
 {
     //General variables
     public int score;
-    public int healthPoints = 5;
-    private int maxHealth;
-    private int healthTaken = 2;
     private bool isDead = false;
     private bool spawnedDeathParticle = false;
     private float deadTimer = 1;
@@ -39,8 +36,6 @@ public class Player : Sprite
     //Mechanics variables
     private bool isCollidingWithBlock;
     public string gravityDirection; //Can be Up, Right, Left, Down
-    private float teleportCD;
-    private float teleportCDDuration = 1;
     private float fireCD;
     private float fireCDDuration = 1;
     private bool canChangeGravity;
@@ -51,12 +46,11 @@ public class Player : Sprite
     public Vec2 normalSize;
 
 
-    bool standingStill => velocity.x <= 0.5f && velocity.y <= 0.5f && velocity.x >= -0.5f && velocity.y >= -0.5f;
+    bool standingStill => velocity.x <= 0.25f && velocity.y <= 0.25f && velocity.x >= -0.25f && velocity.y >= -0.25f;
 
     public Player() : base("Slime.png")
     {
         SetOrigin(width / 2, height / 2);
-        maxHealth = healthPoints;
         SetScaleXY(0.5f, 0.5f);
         acceleration = new Vec2(0, _gravity);
         gravityDirection = "Down";
@@ -77,7 +71,6 @@ public class Player : Sprite
         if (!isDead)
         {
             HandleResizing();
-            HandleTeleportCD();
             HandleFireCD();
             HandleGravityDirection();
             HandleMovement();
@@ -89,20 +82,12 @@ public class Player : Sprite
 
     private void HandleResizing()
     {
-        if (Input.GetKeyDown(Key.SPACE) && normalSize.x > 0.2f)
+        if (Input.GetKeyDown(Key.SPACE) && normalSize.x > 0.3f)
         {
             ObjectDeathEffect slimeEffect = new ObjectDeathEffect(position, velocity);
             game.LateAddChild(slimeEffect);
             SetScaleXY(scaleX - 0.1f, scaleY - 0.1f);
             normalSize = new Vec2(scaleX, scaleY);
-        }
-    }
-
-    private void HandleTeleportCD()
-    {
-        if (teleportCD > 0)
-        {
-            teleportCD -= 0.0175f;
         }
     }
 
@@ -118,6 +103,7 @@ public class Player : Sprite
     {
         SetScaleXY(scaleX + 0.1f, scaleY + 0.1f);
         normalSize = new Vec2(scaleX, scaleY);
+        score++;
     }
 
     private void HandleGravityDirection()
@@ -240,11 +226,6 @@ public class Player : Sprite
 
                 fireCD = fireCDDuration;
 
-            }
-            if (other is TeleportingTile && teleportCD <= 0 && (other as TeleportingTile).shouldTeleportPlayer)
-            {
-                _position = (other as TeleportingTile).pairTile.position;
-                teleportCD = teleportCDDuration;
             }
         }
         UpdateScreenPosition();

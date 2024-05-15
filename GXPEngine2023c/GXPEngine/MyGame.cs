@@ -14,7 +14,7 @@ public class MyGame : Game
 	public MyGame() : base(1280, 720, false, false)     // Create a window that's 1280x720 and NOT fullscreen
 	{
 		targetFps = 60;
-		currentLevelIndex = 1;
+		currentLevelIndex = 2;
 		Menu menu = new Menu("Main Menu");
 		AddChild(menu);
 		HandleUnitTests();

@@ -7,11 +7,16 @@ using System.Threading.Tasks;
 
 namespace GXPEngine
 {
-    class Finish : Sprite
+    class Finish : AnimationSprite
     {
-        public Finish() : base("Finish.png", false, true)
+        public Finish() : base("FinishPortal.png", 3, 1)
         {
             SetOrigin(width / 2, height / 2);
+        }
+
+        private void Update()
+        {
+            Animate(0.125f);
         }
     }
 }

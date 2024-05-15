@@ -10,7 +10,7 @@ namespace GXPEngine
     {
         public Vec2 position;
         public int buttonPairIndex;
-        public ButtonWall(int pairIndex, float xPos, float yPos, float pRotation) : base("MovableWall3.png")
+        public ButtonWall(int pairIndex, float xPos, float yPos, float pRotation) : base("MovingWall.png")
         {
             buttonPairIndex = pairIndex;
             position = new Vec2(xPos, yPos);

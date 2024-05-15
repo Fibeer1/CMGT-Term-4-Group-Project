@@ -15,64 +15,72 @@ namespace GXPEngine
         private int levelIndex;
         MyGame mainGame;
         Sprite levelBackground;
+        Map currentLevelData;
 
         public Level(int index) : base("MapEmpty.png", false, false)
         {
             mainGame = game.FindObjectOfType<MyGame>();
-            SetUpBackground();            
-
+            SetUpBackground();                     
             camera = new Camera(0, 0, game.width, game.height);
             game.AddChild(camera);
-            camera.AddChild(levelBackground);
+            camera.AddChild(levelBackground);            
 
-            Map levelData = MapParser.ReadMap("Level " + index + ".tmx");
-            SpawnObjects(levelData);
-            SpawnTiles(levelData);
+            currentLevelData = MapParser.ReadMap("Level " + index + ".tmx");
+            SpawnObjects();
+            SpawnTileLayers();
             camera.SetXY(player.position.x, player.position.y);
             player.camera = camera;
-
+            
+            
             levelIndex = index;
             SetScaleXY(1.1f, 1.1f);
-
-            //HUD gets added last
-            hud = new HUD();
-            camera.AddChild(hud);
-            hud.SetXY(camera.x - game.width / 2, camera.y - game.height / 2);
         }
 
-        
-        private void SpawnTiles(Map leveldata)
+        private void SpawnTileLayers()
         {
-            if (leveldata.Layers == null || leveldata.Layers.Length == 0)
+            if (currentLevelData.Layers == null || currentLevelData.Layers.Length == 0)
             {
                 return;
             }
-            Layer tileLayer = leveldata.Layers[0];
-            short[,] tileNumbers = tileLayer.GetTileArray();
-            for (int row = 0; row < tileLayer.Height; row++)
+
+            string currentTilesetFile = "DefaultTiles.png";
+
+            for (int layerIndex = 0; layerIndex < currentLevelData.Layers.Length; layerIndex++)
             {
-                for (int col = 0; col < tileLayer.Width; col++)
+                Layer currentLayer = currentLevelData.Layers[layerIndex];
+                short[,] tileNumbers = currentLayer.GetTileArray();
+
+                for (int row = 0; row < currentLayer.Height; row++)
                 {
-                    int tileNumber = tileNumbers[col, row];
-                    if (tileNumber > 0)
+                    for (int col = 0; col < currentLayer.Width; col++)
                     {
-                        string tilesetFile = "DefaultTiles.png";
-                        CollisionTile tile = new CollisionTile(tilesetFile, 3, 3);
-                        tile.SetFrame(tileNumber - 1);
-                        tile.x = col * tile.width;
-                        tile.y = row * tile.height;
-                        AddChild(tile);
+                        int tileNumber = tileNumbers[col, row];
+                        if (tileNumber > 0)
+                        {
+                            int tileIndex = tileNumber;
+                            bool hasCollision = tileIndex >= 96;
+                            CollisionTile currentTile = new CollisionTile(currentTilesetFile, 14, 10, tileIndex, true, hasCollision);
+                            if (hasCollision)
+                            {
+                                currentTile.alpha = 0.5f;
+                            }
+                            currentTile.SetFrame(tileIndex);
+                            currentTile.x = col * currentTile.width;
+                            currentTile.y = row * currentTile.height;
+                            AddChild(currentTile);
+                        }
                     }
                 }
-            }
+            }            
         }
-        private void SpawnObjects(Map leveldata)
+
+        private void SpawnObjects()
         {
-            if (leveldata.ObjectGroups == null || leveldata.ObjectGroups.Length == 0)
+            if (currentLevelData.ObjectGroups == null || currentLevelData.ObjectGroups.Length == 0)
             {
                 return;
             }
-            ObjectGroup objectGroup = leveldata.ObjectGroups[0];
+            ObjectGroup objectGroup = currentLevelData.ObjectGroups[0];
             if (objectGroup.Objects == null || objectGroup.Objects.Length == 0)
             {
                 return;
@@ -115,15 +123,7 @@ namespace GXPEngine
                         AddChild(fireEmitter);
                         break;
                     case "Teleport":
-                        TeleportingTile teleportTile = new TeleportingTile(obj.GetIntProperty("PairIndex"), obj.X, obj.Y);
-                        if (levelIndex >= 2)
-                        {
-                            teleportTile.shouldTeleportPlayer = true;
-                        }
-                        if (levelIndex >= 2)
-                        {
-                            teleportTile.shouldTeleportPlayer = true;
-                        }
+                        TeleportingTile teleportTile = new TeleportingTile(obj.GetIntProperty("PairIndex"), obj.X, obj.Y, obj.Rotation);
                         if (pairIndexedTeleportTile)
                         {
                             pairIndexedTeleportTile = false;

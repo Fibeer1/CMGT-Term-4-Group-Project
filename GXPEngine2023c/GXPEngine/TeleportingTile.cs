@@ -10,14 +10,14 @@ namespace GXPEngine
     {
         public TeleportingTile pairTile;
         private int pairTileIndex;
-        public bool shouldTeleportPlayer = false;
         public bool isThisTheFirstTile = false;
         public Vec2 position;
 
-        public TeleportingTile(int pairIndex, float xPos, float yPos) : base("TeleportTile.png")
+        public TeleportingTile(int pairIndex, float xPos, float yPos, float pRotation) : base("TeleportTile.png")
         {
             SetOrigin(width / 2, height / 2);
             position = new Vec2(xPos, yPos);
+            rotation = pRotation;
             pairTileIndex = pairIndex;
             UpdateScreenPosition();
         }
