@@ -9,7 +9,7 @@ namespace GXPEngine
 {
     class Finish : Sprite
     {
-        public Finish() : base("LevelPortal.png", false, true)
+        public Finish() : base("Finish.png", false, true)
         {
             SetOrigin(width / 2, height / 2);
         }

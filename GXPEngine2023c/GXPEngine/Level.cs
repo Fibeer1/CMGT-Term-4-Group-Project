@@ -13,16 +13,24 @@ namespace GXPEngine
         Camera camera;
         public HUD hud;
         private int levelIndex;
+        MyGame mainGame;
+        Sprite levelBackground;
 
         public Level(int index) : base("MapEmpty.png", false, false)
         {
+            mainGame = game.FindObjectOfType<MyGame>();
+            SetUpBackground();            
+
+            camera = new Camera(0, 0, game.width, game.height);
+            game.AddChild(camera);
+            camera.AddChild(levelBackground);
+
             Map levelData = MapParser.ReadMap("Level " + index + ".tmx");
             SpawnObjects(levelData);
             SpawnTiles(levelData);
-            camera = new Camera(0, 0, game.width, game.height);
             camera.SetXY(player.position.x, player.position.y);
-            game.AddChild(camera);
             player.camera = camera;
+
             levelIndex = index;
             SetScaleXY(1.1f, 1.1f);
 
@@ -150,6 +158,27 @@ namespace GXPEngine
                     (obj as TeleportingTile).CheckTeleportPair();
                 }
             }
+        }
+
+        private void SetUpBackground()
+        {
+            string backgroundImage = "";
+            if (mainGame.currentLevelIndex == 0)
+            {
+                backgroundImage = "Level0Background.png";
+            }
+            else if (mainGame.currentLevelIndex == 1)
+            {
+                backgroundImage = "Level1Background.png";
+            }
+            else
+            {
+                backgroundImage = "Level2Background.png";
+            }
+            Sprite background = new Sprite(backgroundImage, false, false);
+            background.x -= game.width / 2;
+            background.y -= game.height / 2;
+            levelBackground = background;
         }
     }
 }

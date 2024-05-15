@@ -133,6 +133,7 @@ namespace GXPEngine
                 }
                 if (other is Collectable)
                 {
+                    player.ConsumeBlob();                    
                     (other as Collectable).CollectBlob();
                 }
                 if (other is ButtonObject && !(other as ButtonObject).isPushing)

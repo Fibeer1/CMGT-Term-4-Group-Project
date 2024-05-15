@@ -26,13 +26,7 @@ namespace GXPEngine
             {
                 if (HitTestPoint(Input.mouseX, Input.mouseY))
                 {
-                    if (text == "Start Game")
-                    {
-                        Menu menu = parent as Menu;
-                        menu.DestroyAll();
-                        mainGame.StartLevel(mainGame.currentLevelIndex);
-                    }
-                    else if (text == "Restart")
+                    if (text == "Start Game" || text == "Restart")
                     {
                         Menu menu = parent as Menu;
                         menu.DestroyAll();

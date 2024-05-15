@@ -27,7 +27,7 @@ public class Player : Sprite
     private Vec2 _position;
     public Vec2 acceleration;
     private float angularVelocity = 0;
-    private float frictionCoefficient = 0.01f;
+    private float frictionCoefficient = 0f;
     private float _gravity = 0.1f;
     private float angularDampCoefficient = 0.9f;
 
@@ -43,12 +43,15 @@ public class Player : Sprite
     private float teleportCDDuration = 1;
     private float fireCD;
     private float fireCDDuration = 1;
+    private bool canChangeGravity;
 
     //Other variables
     public Camera camera;
     private Vec2 spawnPosition;
-    private Vec2 normalSize;
-    bool standingStill => velocity.x <= 1 && velocity.y <= 1 && velocity.x >= -1 && velocity.y >= -1;
+    public Vec2 normalSize;
+
+
+    bool standingStill => velocity.x <= 0.5f && velocity.y <= 0.5f && velocity.x >= -0.5f && velocity.y >= -0.5f;
 
     public Player() : base("Slime.png")
     {
@@ -73,7 +76,7 @@ public class Player : Sprite
     {
         if (!isDead)
         {
-            //HandleResizing();
+            HandleResizing();
             HandleTeleportCD();
             HandleFireCD();
             HandleGravityDirection();
@@ -81,17 +84,18 @@ public class Player : Sprite
             HandleCameraMovement();
             HandleCollisions();
         }
-        else
-        {
-            HandleDying();
-        }
+        HandleDying();
     }
 
     private void HandleResizing()
     {
-        Vec2 currentSize = new Vec2(scaleX, scaleY);
-        Vec2 desiredSize = Vec2.Lerp(currentSize, normalSize, 0.125f);
-        SetScaleXY(desiredSize.x, desiredSize.y);
+        if (Input.GetKeyDown(Key.SPACE) && normalSize.x > 0.2f)
+        {
+            ObjectDeathEffect slimeEffect = new ObjectDeathEffect(position, velocity);
+            game.LateAddChild(slimeEffect);
+            SetScaleXY(scaleX - 0.1f, scaleY - 0.1f);
+            normalSize = new Vec2(scaleX, scaleY);
+        }
     }
 
     private void HandleTeleportCD()
@@ -110,31 +114,41 @@ public class Player : Sprite
         }
     }
 
+    public void ConsumeBlob()
+    {
+        SetScaleXY(scaleX + 0.1f, scaleY + 0.1f);
+        normalSize = new Vec2(scaleX, scaleY);
+    }
+
     private void HandleGravityDirection()
     {
-        if (isCollidingWithBlock)
+        if (isCollidingWithBlock && canChangeGravity)
         {            
-            if (Input.GetKeyDown(Key.LEFT) && standingStill)
+            if (Input.GetKeyDown(Key.LEFT))
             {
                 isCollidingWithBlock = false;
+                canChangeGravity = false;
                 acceleration = new Vec2(-_gravity, 0);
                 gravityDirection = "Left";
             }
-            else if (Input.GetKeyDown(Key.RIGHT) && standingStill)
+            else if (Input.GetKeyDown(Key.RIGHT))
             {
                 isCollidingWithBlock = false;
+                canChangeGravity = false;
                 acceleration = new Vec2(_gravity, 0);
                 gravityDirection = "Right";
             }
-            else if (Input.GetKeyDown(Key.UP) && standingStill)
+            else if (Input.GetKeyDown(Key.UP))
             {
                 isCollidingWithBlock = false;
+                canChangeGravity = false;
                 acceleration = new Vec2(0, -_gravity);
                 gravityDirection = "Up";
             }
-            else if (Input.GetKeyDown(Key.DOWN) && standingStill)
+            else if (Input.GetKeyDown(Key.DOWN))
             {
                 isCollidingWithBlock = false;
+                canChangeGravity = false;
                 acceleration = new Vec2(0, _gravity);
                 gravityDirection = "Down";
             }
@@ -194,6 +208,7 @@ public class Player : Sprite
             }
             if (other is Collectable)
             {
+                ConsumeBlob();
                 (other as Collectable).CollectBlob();
             }
             if (other is ButtonObject && !(other as ButtonObject).isPushing)
@@ -321,39 +336,33 @@ public class Player : Sprite
         float torque = r1perp.Dot(friction);
         angularVelocity -= torque * inverseMomentOfInertia;
 
-        // Dampen linear and angular velocities upon collision
-        float linearDamping = 0.5f;
-        float angularDamping = 0.25f;
-        velocity *= linearDamping;
-        angularVelocity *= angularDamping;
+        
 
         velocity += (impulse + friction) * inverseMass;
         angularVelocity += r1perp.Dot(normal) * impulseMagnitude * inverseMomentOfInertia;
 
-        //Try doing this tomorrow
-        //SquishPlayer();
+        // Dampen linear and angular velocities upon collision
+        float linearDamping = 0.95f;
+        velocity *= linearDamping;
+        float angularDamping = 0.5f;
+        angularVelocity *= angularDamping;
+
+        if (standingStill)
+        {
+            canChangeGravity = true;
+        }
     }
 
-    private void SquishPlayer()
-    {
-        normalSize = new Vec2(scaleX, scaleY);
-        if (gravityDirection == "Down" || gravityDirection == "Up")
-        {
-            SetScaleXY(scaleX, scaleY / velocity.x);
-        }
-        else
-        {
-            SetScaleXY(scaleX / velocity.y, scaleY);
-        }
-    }
     public void SetSpawnPoint()
     {
         spawnPosition = position;
     }
+
     public void SetPosition(Vec2 pos)
     {
         _position = pos;
     }
+
     void SetSpawnPosition()
     {
         _position = spawnPosition;
@@ -361,8 +370,9 @@ public class Player : Sprite
 
     private void HandleDying()
     {
-        if (isDead)
+        if (scale < 0.1f && !isDead)
         {
+            isDead = true;
             if (!spawnedDeathParticle)
             {
                 spawnedDeathParticle = true;
