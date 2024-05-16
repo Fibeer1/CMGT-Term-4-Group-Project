@@ -5,18 +5,18 @@ using System.Text;
 
 namespace GXPEngine
 {
-    class ButtonUI : EasyDraw
+    class ButtonUI : Sprite
     {
         string text;
         MyGame mainGame;
+        Sound buttonClickClip = new Sound("UIButtonClick.wav");
 
-        public ButtonUI(string pText, float pX, float pY) : base(150, 50)
+        public ButtonUI(string fileText, string pText, float pX, float pY) : base(fileText)
         {
+            SetOrigin(width / 2, height / 2);
             SetXY(pX, pY);
             text = pText;
-            Clear(System.Drawing.Color.FromArgb(50, 50, 50));
-            TextAlign(CenterMode.Center, CenterMode.Center);
-            Text(text);
+            SetScaleXY(scaleX * 1.5f, scaleY * 1.5f);
             mainGame = game.FindObjectOfType<MyGame>();
         }
 
@@ -26,10 +26,18 @@ namespace GXPEngine
             {
                 if (HitTestPoint(Input.mouseX, Input.mouseY))
                 {
-                    if (text == "Start Game" || text == "Restart")
+                    ((MyGame)game).buttonUIAudioSource = buttonClickClip.Play();
+                    if (text == "Start Game" || text == "Restart Level")
                     {
                         Menu menu = parent as Menu;
                         menu.DestroyAll();
+                        mainGame.StartLevel(mainGame.currentLevelIndex);
+                    }
+                    if (text == "Restart Game")
+                    {
+                        Menu menu = parent as Menu;
+                        menu.DestroyAll();
+                        mainGame.currentLevelIndex = 0;
                         mainGame.StartLevel(mainGame.currentLevelIndex);
                     }
                     else if (text == "Quit Game")

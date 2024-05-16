@@ -11,13 +11,13 @@ namespace GXPEngine
         private Vec2 _position;
         private int objectPairIndex;
         private string type;
-        private ButtonWall wallPair;
+        public ButtonWall wallPair;
         public ButtonPlatform platformPair;
         public string pushDirection; //Can be Up, Right, Left, Down
         private bool shouldPushButton = true;
         public bool isPushing = false;
         private float buttonMoveTimer = 0.5f;
-        private float pairObjectMoveTimer = 1f;
+        private float pairObjectMoveTimer = 3f;
         private Vec2 buttonPositionToLerp;
         private Vec2 wallPositionToLerp;
         public ButtonObject(string pType, int pairIndex, float xPos, float yPos, float pRotation) : base("Button.png")
@@ -69,7 +69,7 @@ namespace GXPEngine
 
                 if (type == "Wall")
                 {
-                    wallPair.position = Vec2.Lerp(wallPair.position, wallPositionToLerp, 0.125f);
+                    wallPair.position = Vec2.Lerp(wallPair.position, wallPositionToLerp, 0.025f);
                 }
 
                 buttonMoveTimer -= 0.0175f;

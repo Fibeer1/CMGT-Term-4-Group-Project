@@ -15,7 +15,6 @@ namespace GXPEngine
 
         public FireEmitter(float xPos, float yPos, float pRotation) : base("Empty.png")
         {
-            SetOrigin(width / 2, height / 2);
             position = new Vec2(xPos, yPos);
             rotation = pRotation;
             fireEmitCD = fireEmitCDDuration;
@@ -42,6 +41,11 @@ namespace GXPEngine
 
         private void EmitFire()
         {
+            Level level = parent as Level;
+            if (!level.fireChannel.IsPlaying)
+            {
+                level.fireChannel = level.fireSound.Play();
+            }
             FireParticle fireParticle = new FireParticle(position, rotation);
             parent.LateAddChild(fireParticle);
             fireEmitCD = fireEmitCDDuration;

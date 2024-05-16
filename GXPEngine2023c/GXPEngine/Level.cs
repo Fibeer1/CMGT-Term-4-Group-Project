@@ -10,12 +10,15 @@ namespace GXPEngine
     class Level : Sprite
     {
         public Player player;
-        Camera camera;
-        public HUD hud;
+        Camera camera;        
         private int levelIndex;
         MyGame mainGame;
         Sprite levelBackground;
         Map currentLevelData;
+        public SoundChannel musicChannel;
+        public SoundChannel fireChannel;
+        private Sound gameMusic = new Sound("GameMusic.mp3", true);
+        public Sound fireSound = new Sound("Fire.wav");
 
         public Level(int index) : base("MapEmpty.png", false, false)
         {
@@ -30,10 +33,13 @@ namespace GXPEngine
             SpawnTileLayers();
             camera.SetXY(player.position.x, player.position.y);
             player.camera = camera;
-            
-            
             levelIndex = index;
+            if (levelIndex >= 2)
+            {
+                camera.SetScaleXY(1.5f, 1.5f);
+            }                                                
             SetScaleXY(1.1f, 1.1f);
+            musicChannel = gameMusic.Play();
         }
 
         private void SpawnTileLayers()
@@ -121,6 +127,7 @@ namespace GXPEngine
                     case "FirePit":
                         FireEmitter fireEmitter = new FireEmitter(obj.X, obj.Y, obj.Rotation);
                         AddChild(fireEmitter);
+                        fireChannel = new Sound("BoxImpact.wav").Play();
                         break;
                     case "Teleport":
                         TeleportingTile teleportTile = new TeleportingTile(obj.GetIntProperty("PairIndex"), obj.X, obj.Y, obj.Rotation);

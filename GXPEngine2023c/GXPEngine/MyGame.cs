@@ -6,15 +6,18 @@ using System.Linq;
 
 public class MyGame : Game 
 {
-	Player player;
-	SoundChannel audioSource;
+	public SoundChannel buttonUIAudioSource;
+	public SoundChannel menuSwitchAudioSource;
+	private Sound winScreenSound = new Sound("WinScreenSound.wav");
+	private Sound gameOverSound = new Sound("GameOverSound.wav");
+	public int playerScore;
 	public Sprite[] staticBlocks;
 	public int currentLevelIndex = 0;
 
 	public MyGame() : base(1280, 720, false, false)     // Create a window that's 1280x720 and NOT fullscreen
 	{
 		targetFps = 60;
-		currentLevelIndex = 2;
+		currentLevelIndex = 1;
 		Menu menu = new Menu("Main Menu");
 		AddChild(menu);
 		HandleUnitTests();
@@ -22,12 +25,20 @@ public class MyGame : Game
 
 	public void StartMenu(string menuType)
 	{
+		if (menuType == "Win Screen")
+        {
+			menuSwitchAudioSource = winScreenSound.Play();
+        }
+		else if (menuType == "Game Over")
+        {
+			menuSwitchAudioSource = gameOverSound.Play();
+        }
 		DestroyChildren();
 		Menu menu = new Menu(menuType);
 		AddChild(menu);
 	}
 	public void StartLevel(int levelIndex)
-	{
+	{		
 		DestroyChildren();
 		currentLevelIndex = levelIndex;
 		Level level = new Level(levelIndex);
@@ -40,16 +51,25 @@ public class MyGame : Game
 		foreach (GameObject child in children)
 		{
 			child.LateDestroy();
+			if (child is Level)
+			{
+				Level level = child as Level;
+				level.musicChannel.Stop();
+			}
 		}
 	}
 
 	public void EndGame()
     {
-		audioSource.Stop();
 		Menu menu = new Menu("Game Over");
 		for (int i = 0; i < game.GetChildCount(); i++)
 		{
 			GameObject child = game.GetChildren()[i];
+			if (child is Level)
+			{
+				Level level = child as Level;
+				level.musicChannel.Stop();
+			}
 			child.LateRemove();
 			child.LateDestroy();
 		}		

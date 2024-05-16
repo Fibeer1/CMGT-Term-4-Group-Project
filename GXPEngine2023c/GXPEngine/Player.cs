@@ -4,7 +4,7 @@ using GXPEngine;
 using Physics;
 using GXPEngine.Core;
 
-public class Player : Sprite
+public class Player : AnimationSprite
 {
     //General variables
     public int score;
@@ -44,14 +44,30 @@ public class Player : Sprite
     public Camera camera;
     private Vec2 spawnPosition;
     public Vec2 normalSize;
+    private Vec2 maximumSize = new Vec2(1, 1);
+    private Vec2 minimumSize = new Vec2(0.7f, 0.7f);
+
+    //Sound variables
+    private SoundChannel audioSource;
+    private SoundChannel wallAudioSource;
+    private SoundChannel burnAudioSource;
+    private SoundChannel levelFinishAudioSource;
+    Sound impactSound = new Sound("SlimeImpact.wav");
+    Sound movingWallSound = new Sound("MovingWall.wav");
+    Sound burnSound = new Sound("SlimeBurning.wav");
+    Sound collectableSound = new Sound("CollectBlob.wav");
+    Sound levelFinishSound = new Sound("LevelFinish.wav");
+    private bool shouldPlayImpactSound = true;
 
 
     bool standingStill => velocity.x <= 0.25f && velocity.y <= 0.25f && velocity.x >= -0.25f && velocity.y >= -0.25f;
 
-    public Player() : base("Slime.png")
+    bool movingQuick => velocity.x > 5f || velocity.y > 5f || velocity.x < -5f || velocity.y < -5f;
+
+    public Player() : base("Slime.png", 9, 4)
     {
         SetOrigin(width / 2, height / 2);
-        SetScaleXY(0.5f, 0.5f);
+        SetScaleXY(minimumSize.x, minimumSize.y);
         acceleration = new Vec2(0, _gravity);
         gravityDirection = "Down";
         ComputeMassInertia(1);
@@ -70,7 +86,12 @@ public class Player : Sprite
     {
         if (!isDead)
         {
-            HandleResizing();
+            if (Input.GetKeyDown(Key.SPACE))
+            {
+                HandleResizing();
+            }
+            HandleAnimations();
+            HandleSounds();
             HandleFireCD();
             HandleGravityDirection();
             HandleMovement();
@@ -80,9 +101,132 @@ public class Player : Sprite
         HandleDying();
     }
 
+    private void HandleAnimations()
+    {
+        float animSpeed = 0.5f;
+        if (gravityDirection == "Down")
+        {
+            if (velocity.y > 0.5f) //Down flying
+            {
+                animSpeed = 0.15f;
+                if (currentFrame != 3)
+                {
+                    SetCycle(0, 4);
+                }
+                else
+                {
+                    SetCycle(3, 1);
+                }
+            }
+            if (velocity.y <= 0.5f && canChangeGravity) //Down impact
+            {
+                animSpeed = 0.5f;
+                if (currentFrame != 8)
+                {
+                    SetCycle(4, 5);
+                }
+                else
+                {
+                    SetCycle(8, 1);
+                }
+            }
+        }
+        if (gravityDirection == "Up")
+        {
+            if (velocity.y < -0.5f) //Up flying
+            {
+                animSpeed = 0.15f;
+                if (currentFrame != 12)
+                {
+                    SetCycle(9, 4);
+                }
+                else
+                {
+                    SetCycle(12, 1);
+                }
+            }
+            if (velocity.y >= -0.5f && velocity.y < 0 && canChangeGravity) //Up impact
+            {
+                animSpeed = 0.5f;
+                if (currentFrame != 17)
+                {
+                    SetCycle(13, 5);
+                }
+                else
+                {
+                    SetCycle(17, 1);
+                }
+            }
+        }
+        if (gravityDirection == "Right")
+        {
+            if (velocity.x > 0.5f) //Right flying
+            {
+                animSpeed = 0.15f;
+                if (currentFrame != 21)
+                {
+                    SetCycle(18, 4);
+                }
+                else
+                {
+                    SetCycle(21, 1);
+                }
+            }
+            if (velocity.x <= 0.5f && canChangeGravity) //Right impact
+            {
+                animSpeed = 0.5f;
+                if (currentFrame != 26)
+                {
+                    SetCycle(22, 5);
+                }
+                else
+                {
+                    SetCycle(26, 1);
+                }
+            }
+        }
+        if (gravityDirection == "Left")
+        {
+            if (velocity.x < -0.5f) //Left flying
+            {
+                animSpeed = 0.15f;
+                if (currentFrame != 30)
+                {
+                    SetCycle(27, 4);
+                }
+                else
+                {
+                    SetCycle(30, 1);
+                }
+            }
+            if (velocity.x >= -0.5f && velocity.x < 0 && canChangeGravity) //Left impact
+            {
+                animSpeed = 0.5f;
+                if (currentFrame != 35)
+                {
+                    SetCycle(31, 5);
+                }
+                else
+                {
+                    SetCycle(35, 1);
+                }
+            }
+        }
+
+        Animate(animSpeed);
+    }
+
+    private void HandleSounds()
+    {
+        if (movingQuick)
+        {
+            shouldPlayImpactSound = true;
+        }
+    }
+
     private void HandleResizing()
     {
-        if (Input.GetKeyDown(Key.SPACE) && normalSize.x > 0.3f)
+        if (normalSize.x > minimumSize.x + 0.1f)
         {
             ObjectDeathEffect slimeEffect = new ObjectDeathEffect(position, velocity);
             game.LateAddChild(slimeEffect);
@@ -101,18 +245,22 @@ public class Player : Sprite
 
     public void ConsumeBlob()
     {
-        SetScaleXY(scaleX + 0.1f, scaleY + 0.1f);
+        if (scaleX < maximumSize.x)
+        {
+            SetScaleXY(scaleX + 0.1f, scaleY + 0.1f);
+        }
+        audioSource = collectableSound.Play();
         normalSize = new Vec2(scaleX, scaleY);
         score++;
+        ((MyGame)game).playerScore = score;
     }
 
     private void HandleGravityDirection()
     {
         if (isCollidingWithBlock && canChangeGravity)
-        {            
+        {           
             if (Input.GetKeyDown(Key.LEFT))
             {
-                isCollidingWithBlock = false;
                 canChangeGravity = false;
                 acceleration = new Vec2(-_gravity, 0);
                 gravityDirection = "Left";
@@ -199,33 +347,46 @@ public class Player : Sprite
             }
             if (other is ButtonObject && !(other as ButtonObject).isPushing)
             {
-                (other as ButtonObject).isPushing = true;
-                if ((other as ButtonObject).platformPair != null)
+                ButtonObject button = other as ButtonObject;
+                button.isPushing = true;
+                if (button.wallPair != null)
                 {
-                    (other as ButtonObject).platformPair.shouldMove = true;
+                    wallAudioSource = movingWallSound.Play();
                 }
-                
+
+                if (button.platformPair != null)
+                {
+                    button.platformPair.shouldMove = true;
+                }               
             }
             if (other is Finish)
             {
                 MyGame mainGame = (MyGame)game;
-                if (mainGame.currentLevelIndex++ == 3)
+                mainGame.currentLevelIndex++;
+                if (mainGame.currentLevelIndex >= 3)
                 {
                     mainGame.StartMenu("Win Screen");
                 }
                 else
                 {
-                    mainGame.StartLevel(mainGame.currentLevelIndex++);
+                    levelFinishAudioSource = levelFinishSound.Play();
+                    mainGame.StartLevel(mainGame.currentLevelIndex);
                 }
             }
             if (other is FireParticle && fireCD <= 0)
             {
-                Vec2 reducedSize = new Vec2(scaleX - 0.1f, scaleY - 0.1f);
+                Vec2 reducedSize = new Vec2(scaleX - 0.2f, scaleY - 0.2f);
                 normalSize = reducedSize;
                 SetScaleXY(reducedSize.x, reducedSize.y);
-
+                ObjectDeathEffect slimeEffect = new ObjectDeathEffect(position, velocity);
+                game.LateAddChild(slimeEffect);
+                burnAudioSource = burnSound.Play();
+                if (normalSize.x <= minimumSize.x)
+                {
+                    HandleDying();
+                }
+                
                 fireCD = fireCDDuration;
-
             }
         }
         UpdateScreenPosition();
@@ -270,13 +431,26 @@ public class Player : Sprite
                 (other is ObjectDeathEffect) ||
                 (other is FireEmitter) ||
                 (other is TeleportingTile) ||
-                (other is FireParticle))
+                (other is FireParticle) || other is null)
         {
             return;
-        }        
+        }
+
+        if (audioSource == null || !audioSource.IsPlaying)
+        {
+            if (shouldPlayImpactSound)
+            {
+                shouldPlayImpactSound = false;
+                audioSource = impactSound.Play();
+            }
+        }
 
         // A GXPEngine method for finding all kinds of useful info about collisions (=overlaps):
         Collision colInfo = collider.GetCollisionInfo(other.collider);
+        if (colInfo == null)
+        {
+            return;
+        }
 
         // Translate from GXPEngine.Core.Vector2 to our own Vec2:
         // collision normal:
@@ -325,13 +499,13 @@ public class Player : Sprite
         // Dampen linear and angular velocities upon collision
         float linearDamping = 0.95f;
         velocity *= linearDamping;
-        float angularDamping = 0.5f;
+        float angularDamping = 0.25f;
         angularVelocity *= angularDamping;
 
         if (standingStill)
         {
             canChangeGravity = true;
-        }
+        }        
     }
 
     public void SetSpawnPoint()
@@ -351,7 +525,7 @@ public class Player : Sprite
 
     private void HandleDying()
     {
-        if (scale < 0.1f && !isDead)
+        if (normalSize.x < minimumSize.x && !isDead)
         {
             isDead = true;
             if (!spawnedDeathParticle)
@@ -361,9 +535,13 @@ public class Player : Sprite
                 game.LateAddChild(deathEffect);
             }         
             alpha = 0;
+        }
+        if (isDead)
+        {
             deadTimer -= 0.0175f;
             if (deadTimer <= 0)
             {
+                ((MyGame)game).playerScore -= score;
                 game.FindObjectOfType<MyGame>().EndGame();
             }
         }

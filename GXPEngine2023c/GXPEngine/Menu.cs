@@ -11,7 +11,7 @@ namespace GXPEngine
 
         public Menu(string pType) : base()
         {
-            menuType = pType;
+            menuType = pType;       
             if (menuType == "Game Over")
             {
                 StartGameOver();
@@ -19,38 +19,42 @@ namespace GXPEngine
             else if (menuType == "Main Menu")
             {
                 StartMainMenu();
-            }            
+            }
+            else if (menuType == "Win Screen")
+            {
+                StartWinScreen();
+            }
         }
 
         private void StartGameOver()
         {
-            EasyDraw gameOverText = new EasyDraw(250, 75, false);
+            Sprite background = new Sprite("GameOverBackground.png", false, false);
             ButtonUI restartButton;
             ButtonUI quitButton;
-            gameOverText.TextSize(25);
-            gameOverText.TextAlign(CenterMode.Center, CenterMode.Center);
-            gameOverText.SetXY(game.width / 2 - gameOverText.width / 2, 50);
-            gameOverText.Text("Game over!");
-            restartButton = new ButtonUI("Restart", game.width / 2 - 150 / 2, 425);
-            quitButton = new ButtonUI("Quit Game", game.width / 2 - 150 / 2, 500);
-            AddChild(gameOverText);
+            restartButton = new ButtonUI("RestartButton.png", "Restart Level", 445, game.height / 2 - 30);
+            quitButton = new ButtonUI("QuitButton.png", "Quit Game", 840, game.height / 2 - 30);
+            AddChild(background);
             AddChild(restartButton);
             AddChild(quitButton);
         }
 
         private void StartMainMenu()
         {
-            EasyDraw title = new EasyDraw(400, 75, false);
-            EasyDraw controls = new EasyDraw(360, 480, false);
-            ButtonUI startButton = new ButtonUI("Start Game", game.width / 2 - 150 / 2, 250);
-            ButtonUI quitButton = new ButtonUI("Quit Game", game.width / 2 - 150 / 2, 350);
-            title.TextAlign(CenterMode.Center, CenterMode.Center);
-            title.SetXY(game.width / 2 - title.width / 2, 50);
-            title.TextSize(30);
-            title.Text("Slime Game");
-            AddChild(title);
-            AddChild(controls);
+            Sprite background = new Sprite("MainMenuBackground.png", false, false);
+            ButtonUI startButton = new ButtonUI("PlayButton.png", "Start Game", game.width / 2, 450);
+            ButtonUI quitButton = new ButtonUI("QuitButton.png", "Quit Game", game.width / 2, game.height - 185);
+            quitButton.SetScaleXY(1, 1);
+            AddChild(background);
             AddChild(startButton);
+            AddChild(quitButton);
+        }
+        private void StartWinScreen()
+        {
+            Sprite background = new Sprite("WinScreenBackground.png", false, false);
+            ButtonUI restartButton = new ButtonUI("RestartButton.png", "Restart Game", game.width / 2 - 200, 420);
+            ButtonUI quitButton = new ButtonUI("QuitButton.png", "Quit Game", game.width / 2 + 200, 420);
+            AddChild(background);
+            AddChild(restartButton);
             AddChild(quitButton);
         }
 

@@ -30,6 +30,7 @@ namespace GXPEngine
         private float inverseMass = 0.5f;
         private float inverseMomentOfInertia = 0.01f;
         private string gravityDirection; //Can be Up, Right, Left, Down
+        private bool shouldFollowPlayerGravity = true;
 
         //Other variables
         public Player player;
@@ -37,12 +38,23 @@ namespace GXPEngine
         private float teleportCDDuration = 3;
         private Vec2 normalSize;
 
+        //Sound variables
+        private SoundChannel audioSource;
+        private SoundChannel wallAudioSource;
+        Sound impactSound = new Sound("BoxImpact.wav");
+        Sound movingWallSound = new Sound("MovingWall.wav");
+        private bool shouldPlayImpactSound = true;
+
+        bool movingQuick => velocity.x > 3f || velocity.y > 3f || velocity.x < -3f || velocity.y < -3f;
+
         public MimicBox(float xPos, float yPos) : base("MimicBox.png")
         {
             SetOrigin(width / 2, height / 2);
             _position = new Vec2(xPos, yPos);
             acceleration = new Vec2(0, _gravity);
             gravityDirection = "Down";
+            teleportCD = 0;
+            shouldFollowPlayerGravity = true;
             normalSize = new Vec2(scaleX, scaleY);
             ComputeMassInertia(3f);
         }
@@ -57,6 +69,7 @@ namespace GXPEngine
 
         private void Update()
         {
+            HandleSounds();
             HandleTeleportCD();
             HandleGravityDirection();
             HandleMovement();
@@ -76,13 +89,30 @@ namespace GXPEngine
             if (teleportCD > 0)
             {
                 teleportCD -= 0.0175f;
+                if (shouldFollowPlayerGravity)
+                {
+                    shouldFollowPlayerGravity = false;
+                }
+            }
+            if (teleportCD <= 0 && !shouldFollowPlayerGravity)
+            {
+                shouldFollowPlayerGravity = true;
+            }
+        }
+
+        private void HandleSounds()
+        {
+            if (movingQuick)
+            {
+                shouldPlayImpactSound = true;
             }
         }
 
         private void HandleGravityDirection()
         {
             float diff = position.Distance(new Vec2(player.camera.x, player.camera.y));
-            if (diff < 600)
+            Vec2 maxDiff = new Vec2(game.width * player.camera.scaleX, game.height * player.camera.scaleY);
+            if (diff < maxDiff.x && diff < maxDiff.y && shouldFollowPlayerGravity)
             {
                 acceleration = player.acceleration;
                 gravityDirection = player.gravityDirection;
@@ -138,15 +168,31 @@ namespace GXPEngine
                 }
                 if (other is ButtonObject && !(other as ButtonObject).isPushing)
                 {
-                    (other as ButtonObject).isPushing = true;
-                    if ((other as ButtonObject).platformPair != null)
+                    ButtonObject button = other as ButtonObject;
+                    button.isPushing = true;
+                    if (button.wallPair != null)
                     {
-                        (other as ButtonObject).platformPair.shouldMove = true;
+                        wallAudioSource = movingWallSound.Play();
+                    }
+
+                    if (button.platformPair != null)
+                    {
+                        button.platformPair.shouldMove = true;
                     }
                 }
                 if (other is TeleportingTile && teleportCD <= 0)
                 {
-                    _position = (other as TeleportingTile).pairTile.position;
+                    TeleportingTile tile = other as TeleportingTile;
+                    TeleportingTile pairTile = tile.pairTile;
+                    if (pairTile.rotation > 0)
+                    {
+                        _position = new Vec2(pairTile.position.x + pairTile.width / 2.25f, pairTile.position.y + pairTile.height / 2.25f);
+                    }
+                    else
+                    {
+                        _position = new Vec2(pairTile.position.x + pairTile.width * 2.25f, pairTile.position.y + pairTile.height * 2.25f);
+                    }
+                    velocity = Vec2.GetUnitVectorDeg(pairTile.rotation + 90) * 2;
                     teleportCD = teleportCDDuration;
                     SetScaleXY(0.1f, 0.1f);
                 }
@@ -194,12 +240,26 @@ namespace GXPEngine
                 return;
             }
 
+            if (audioSource == null || !audioSource.IsPlaying)
+            {
+                if (shouldPlayImpactSound)
+                {
+                    shouldPlayImpactSound = false;
+                    audioSource = impactSound.Play();
+                }
+            }
+
             // A GXPEngine method for finding all kinds of useful info about collisions (=overlaps):
             Collision colInfo = collider.GetCollisionInfo(other.collider);
+            if (colInfo == null)
+            {
+                return;
+            }
 
             // Translate from GXPEngine.Core.Vector2 to our own Vec2:
             // collision normal:
             Vec2 normal = new Vec2(colInfo.normal);
+
             // The exact collision point: 
             // (This might be a corner of this sprite, or a corner of the other sprite)
             Vec2 point = new Vec2(colInfo.point);
